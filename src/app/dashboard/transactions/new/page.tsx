@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Account, Category } from '@prisma/client'
+import { toast } from 'sonner'
 
 export default function NewTransactionPage() {
   const router = useRouter()
@@ -84,7 +85,25 @@ export default function NewTransactionPage() {
         throw new Error(errorData.error || 'Failed to create transaction')
       }
 
-      router.push('/dashboard/transactions')
+      // Track onboarding action and sync progress
+      try {
+        const trackResponse = await fetch('/api/auth/complete-onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'add_transaction' }),
+        })
+
+        if (trackResponse.ok) {
+          const trackData = await trackResponse.json()
+          // Show smart message from backend
+          toast.success(trackData.message || '✅ Transaction created successfully!')
+        }
+      } catch (error) {
+        console.error('Error tracking onboarding action:', error)
+        toast.success('✅ Transaction created successfully!')
+      }
+
+      // Stay on same page - wizard will auto-show with Done step
       router.refresh()
     } catch (err: any) {
       setError(err.message || 'An error occurred')

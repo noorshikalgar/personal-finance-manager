@@ -1,11 +1,14 @@
 'use client'
 
 import { useState, FormEvent, useEffect } from 'react'
+import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { Plus, Trash2 } from 'lucide-react'
 import { Category } from '@prisma/client'
+import { toast } from 'sonner'
 
 export default function CategoriesPage() {
+  const router = useRouter()
   const [categories, setCategories] = useState<Category[]>([])
   const [loading, setLoading] = useState(true)
   const [showForm, setShowForm] = useState(false)
@@ -49,10 +52,29 @@ export default function CategoriesPage() {
         throw new Error(errorData.error || 'Failed to create category')
       }
 
+      // Track onboarding action and sync progress
+      try {
+        const trackResponse = await fetch('/api/auth/complete-onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'add_category' }),
+        })
+
+        if (trackResponse.ok) {
+          const trackData = await trackResponse.json()
+          // Show smart message from backend
+          toast.success(trackData.message || '✅ Category created successfully!')
+        }
+      } catch (error) {
+        console.error('Error tracking onboarding action:', error)
+        toast.success('✅ Category created successfully!')
+      }
+
       setName('')
       setMonthlyBudget('')
       setColor('#3B82F6')
       setShowForm(false)
+      router.refresh()
       fetchCategories()
     } catch (err: any) {
       setError(err.message || 'An error occurred')

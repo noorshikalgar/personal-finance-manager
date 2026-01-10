@@ -14,6 +14,15 @@ export default async function DashboardPage() {
     redirect('/auth/signin')
   }
 
+  // Fetch user to check onboarding status
+  let user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+  })
+
+  if (!user) {
+    redirect('/auth/signin')
+  }
+
   // Fetch dashboard data
   const [accountsRaw, transactionsRaw, categoriesRaw, recurringTransactionsRaw] = await Promise.all([
     prisma.account.findMany({
@@ -43,6 +52,12 @@ export default async function DashboardPage() {
         category: true,
       },
     }),
+    // Get counts for onboarding wizard
+    Promise.all([
+      prisma.account.count({ where: { userId: session.user.id } }),
+      prisma.transaction.count({ where: { userId: session.user.id } }),
+      prisma.category.count({ where: { userId: session.user.id } }),
+    ]),
   ])
 
   // Convert Decimal to number for client components
@@ -86,37 +101,37 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
-        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-        <div className="flex gap-3">
-          <Link href="/dashboard/transactions/new">
-            <Button>
-              <Plus className="mr-2 h-4 w-4" />
-              Add Transaction
-            </Button>
-          </Link>
-          <Link href="/dashboard/accounts/new">
-            <Button variant="outline">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Account
-            </Button>
-          </Link>
-          <Link href="/dashboard/categories">
-            <Button variant="outline">
-              <Plus className="mr-2 h-4 w-4" />
-              Add Category
-            </Button>
-          </Link>
+        <div className="flex items-center justify-between">
+          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+          <div className="flex gap-3">
+            <Link href="/dashboard/transactions/new">
+              <Button>
+                <Plus className="mr-2 h-4 w-4" />
+                Add Transaction
+              </Button>
+            </Link>
+            <Link href="/dashboard/accounts/new">
+              <Button variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Account
+              </Button>
+            </Link>
+            <Link href="/dashboard/categories">
+              <Button variant="outline">
+                <Plus className="mr-2 h-4 w-4" />
+                Add Category
+              </Button>
+            </Link>
+          </div>
         </div>
+        <DashboardOverview
+          accounts={accounts}
+          transactions={transactions}
+          categories={categories}
+          recurringTransactions={recurringTransactions}
+        />
+        <BudgetTracker />
+        <GoalsTracker />
       </div>
-      <DashboardOverview
-        accounts={accounts}
-        transactions={transactions}
-        categories={categories}
-        recurringTransactions={recurringTransactions}
-      />
-      <BudgetTracker />
-      <GoalsTracker />
-    </div>
-  )
-}
+    )
+  }

@@ -5,6 +5,46 @@ Comprehensive roadmap for Personal Finance Manager application with 20 planned f
 
 ---
 
+## 🎯 Foundation & UX (Priority 0)
+
+### 0A. **Enhanced Authentication Pages**
+**Description:** Improve login/signup experience with educational content and value proposition.
+- Landing page with hero section explaining app benefits
+- Feature highlights on login/signup pages
+- Clear call-to-action buttons
+- Responsive design for mobile and desktop
+- Social proof elements (optional)
+- Quick benefit summary (3-5 key features)
+**Implementation Priority:** 0
+**Estimated Complexity:** Low
+**Required Changes:**
+- Redesign src/app/auth/signin/page.tsx with hero section
+- Redesign src/app/auth/signup/page.tsx with benefits
+- Create reusable AuthLayout component
+- Add benefit cards/sections
+
+---
+
+### 0B. **First-Time User Onboarding**
+**Description:** Interactive tutorial for new users to get started quickly.
+- Step-by-step onboarding wizard after first login
+- Guided tour of key features
+- Create first account/category/transaction walkthrough
+- Optional interactive tooltips
+- Skip/complete onboarding actions
+- Persistent onboarding state (track completion)
+- Celebrate first transaction milestone
+**Implementation Priority:** 0
+**Estimated Complexity:** Medium
+**Required Changes:**
+- Add onboardingCompleted flag to User model
+- Create OnboardingWizard component
+- Create onboarding API endpoint to track progress
+- Add onboarding check on first dashboard visit
+- Design onboarding steps and UI
+
+---
+
 ## 🎯 High-Impact Features (Priority 1)
 
 ### 1. **Budget Tracker with Alerts**

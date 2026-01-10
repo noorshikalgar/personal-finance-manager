@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import { toast } from 'sonner'
 
 export default function NewAccountPage() {
   const router = useRouter()
@@ -71,14 +72,26 @@ export default function NewAccountPage() {
 
       const account = await res.json()
 
-      // If it's a bank account and user doesn't want to import past transactions,
-      // create an adjustment transaction
-      if (accountType === 'BANK_SALARY' && importPast === false) {
-        // This will be handled by a separate flow - for now just redirect
-        router.push('/dashboard/accounts')
-      } else {
-        router.push('/dashboard/accounts')
+      // Track onboarding action and sync progress
+      try {
+        const trackResponse = await fetch('/api/auth/complete-onboarding', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({ action: 'add_account' }),
+        })
+
+        if (trackResponse.ok) {
+          const trackData = await trackResponse.json()
+          // Show smart message from backend
+          toast.success(trackData.message || '✅ Account created successfully!')
+        }
+      } catch (error) {
+        console.error('Error tracking onboarding action:', error)
+        toast.success('✅ Account created successfully!')
       }
+
+      // Stay on same page - wizard will auto-show with next step
+      router.refresh()
     } catch (err: any) {
       setError(err.message || 'An error occurred')
     } finally {

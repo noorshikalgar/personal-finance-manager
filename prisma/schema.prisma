@@ -18,6 +18,13 @@ model User {
   email         String    @unique
   passwordHash  String
   pin           String?   // Optional PIN to hide amounts on dashboard
+  
+  // Onboarding tracking
+  onboardingCompleted Boolean @default(false) // Final completion flag
+  onboardingCurrentStep Int @default(0) // 0=welcome, 1=add-account, 2=add-transaction, 3=add-category, 4=set-budget, 5=done
+  onboardingCompletedActions String[] @default([]) // JSON array of completed action types
+  onboardingSkipped Boolean @default(false) // User explicitly skipped the tour
+  
   createdAt     DateTime  @default(now())
   updatedAt     DateTime  @updatedAt
   
