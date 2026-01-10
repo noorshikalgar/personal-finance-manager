@@ -1,6 +1,6 @@
 'use client'
 
-import { useState, useEffect } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ChevronRight, CheckCircle2, Wallet, DollarSign, Folders, Loader2 } from 'lucide-react'
@@ -115,8 +115,23 @@ export function OnboardingWizard({
     }
   }, [accountCount, categoryCount, transactionCount])
 
-  // Auto-advance to next step when user completes an action
+  const progressSnapshot = useRef<{ accountCount: number; categoryCount: number; transactionCount: number } | null>(null)
+
+  // Auto-advance to next step only when the underlying progress changes
   useEffect(() => {
+    const previous = progressSnapshot.current
+    const hasChanged =
+      !previous ||
+      previous.accountCount !== accountCount ||
+      previous.categoryCount !== categoryCount ||
+      previous.transactionCount !== transactionCount
+
+    if (!hasChanged) {
+      return
+    }
+
+    progressSnapshot.current = { accountCount, categoryCount, transactionCount }
+
     const hasProgress = accountCount > 0 || categoryCount > 0 || transactionCount > 0
     const nextIndex = getStepIndexFromProgress()
 
@@ -374,6 +389,7 @@ export function OnboardingWizard({
                 variant="secondary"
                 onClick={handleAction}
                 disabled={isLoading || isSkipping}
+                className="shadow-md hover:shadow-lg transition-shadow"
               >
                 {step.action}
               </Button>
