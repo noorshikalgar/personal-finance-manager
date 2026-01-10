@@ -1,0 +1,165 @@
+// Personal Finance Tracker - Simple & Self-Hosted
+// No accounting jargon - Just money in, money out, balance changes
+
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+}
+
+// ============================================================================
+// AUTH - Single user only
+// ============================================================================
+
+model User {
+  id            String    @id @default(cuid())
+  email         String    @unique
+  passwordHash  String
+  pin           String?   // Optional PIN to hide amounts on dashboard
+  createdAt     DateTime  @default(now())
+  updatedAt     DateTime  @updatedAt
+  
+  accounts      Account[]
+  transactions  Transaction[]
+  categories    Category[]
+  recurringTransactions RecurringTransaction[]
+}
+
+// ============================================================================
+// ACCOUNTS - Two types: Bank/Salary and Credit Card
+// ============================================================================
+
+enum AccountType {
+  BANK_SALARY
+  CREDIT_CARD
+}
+
+model Account {
+  id        String      @id @default(cuid())
+  userId    String
+  user      User        @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name      String
+  type      AccountType
+  
+  // For BANK_SALARY accounts
+  monthlyIncome     Decimal?  @db.Decimal(12, 2)
+  currentBalance    Decimal   @db.Decimal(12, 2)
+  startDate         DateTime?
+  
+  // For CREDIT_CARD accounts
+  totalLimit        Decimal?  @db.Decimal(12, 2)
+  availableLimit    Decimal?  @db.Decimal(12, 2)
+  billingCycleStart Int?      // Day of month (1-31)
+  dueDate           Int?      // Day of month (1-31)
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  transactions          Transaction[]
+  recurringTransactions RecurringTransaction[]
+  
+  @@index([userId])
+}
+
+// ============================================================================
+// CATEGORIES - Flat only, no nesting
+// ============================================================================
+
+model Category {
+  id            String   @id @default(cuid())
+  userId        String
+  user          User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  name          String
+  monthlyBudget Decimal? @db.Decimal(12, 2) // Optional budget - visual only
+  color         String?  // For UI visualization
+  
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+  
+  transactions          Transaction[]
+  recurringTransactions RecurringTransaction[]
+  
+  @@unique([userId, name])
+  @@index([userId])
+}
+
+// ============================================================================
+// TRANSACTIONS - Keep it dead simple
+// ============================================================================
+
+enum TransactionType {
+  INCOME
+  EXPENSE
+  ADJUSTMENT  // For system-generated balance adjustments
+}
+
+model Transaction {
+  id          String          @id @default(cuid())
+  userId      String
+  user        User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  accountId   String
+  account     Account         @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  
+  categoryId  String?
+  category    Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  
+  date        DateTime
+  amount      Decimal         @db.Decimal(12, 2) // Positive for income, negative for expense
+  type        TransactionType
+  note        String?
+  
+  // Link to recurring transaction if auto-generated
+  recurringTransactionId String?
+  recurringTransaction   RecurringTransaction? @relation(fields: [recurringTransactionId], references: [id], onDelete: SetNull)
+  
+  createdAt   DateTime        @default(now())
+  updatedAt   DateTime        @updatedAt
+  
+  @@index([userId])
+  @@index([accountId])
+  @@index([categoryId])
+  @@index([date])
+}
+
+// ============================================================================
+// RECURRING TRANSACTIONS - Monthly only, idempotent logic
+// ============================================================================
+
+model RecurringTransaction {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  accountId   String
+  account     Account  @relation(fields: [accountId], references: [id], onDelete: Cascade)
+  
+  categoryId  String?
+  category    Category? @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  
+  amount      Decimal  @db.Decimal(12, 2) // Positive for income, negative for expense
+  type        TransactionType
+  note        String?
+  
+  // Monthly only
+  dayOfMonth  Int      // 1-31
+  startDate   DateTime
+  endDate     DateTime? // Optional end date
+  
+  paused      Boolean  @default(false)
+  lastRunAt   DateTime? // Last time transaction was created
+  
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  transactions Transaction[] // Generated transactions from this recurring rule
+  
+  @@index([userId])
+  @@index([accountId])
+  @@index([paused])
+  @@index([lastRunAt])
+}

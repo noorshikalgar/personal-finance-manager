@@ -1,0 +1,561 @@
+'use client'
+
+import { useState, useEffect } from 'react'
+import { Button } from '@/components/ui/button'
+import { BarChart3, Table2, TrendingDown, TrendingUp } from 'lucide-react'
+import { PieChart, Pie, Cell, ResponsiveContainer, Tooltip } from 'recharts'
+
+interface Account {
+  id: string
+  name: string
+}
+
+interface AnalyzeData {
+  summary: {
+    totalIncome: number
+    totalExpense: number
+    saved: number
+    transactionCount: number
+    previousMonthExpense: number
+    expenseChange: number
+    avgDailySpend: number
+    projectedSpending: number
+  }
+  topCategories: Array<{
+    name: string
+    amount: number
+    color?: string
+    count: number
+    budget: number
+  }>
+  byCategory: Array<{
+    name: string
+    amount: number
+    color?: string
+    count: number
+    budget: number
+  }>
+  byAccount: Array<{
+    id: string
+    name: string
+    income: number
+    expense: number
+  }>
+  dateRange: {
+    from?: string
+    to?: string
+  }
+}
+
+const COLORS = ['#3b82f6', '#10b981', '#f59e0b', '#ef4444', '#8b5cf6', '#ec4899', '#14b8a6', '#f97316']
+
+export default function AnalyzeClient() {
+  const [accounts, setAccounts] = useState<Account[]>([])
+  const [selectedAccounts, setSelectedAccounts] = useState<string[]>([])
+  const [fromDate, setFromDate] = useState('')
+  const [toDate, setToDate] = useState('')
+  const [loading, setLoading] = useState(false)
+  const [data, setData] = useState<AnalyzeData | null>(null)
+  const [analyzed, setAnalyzed] = useState(false)
+  const [viewMode, setViewMode] = useState<'graph' | 'details'>('graph')
+
+  // Fetch accounts on mount
+  useEffect(() => {
+    fetchAccounts()
+    setDefaultDateRange()
+  }, [])
+
+  const setDefaultDateRange = () => {
+    const today = new Date()
+    const startOfMonth = new Date(today.getFullYear(), today.getMonth(), 1)
+    setFromDate(startOfMonth.toISOString().split('T')[0])
+    setToDate(today.toISOString().split('T')[0])
+  }
+
+  const setDatePreset = (preset: 'thisMonth' | 'lastMonth' | 'last3Months') => {
+    const today = new Date()
+    let from: Date
+
+    switch (preset) {
+      case 'thisMonth':
+        from = new Date(today.getFullYear(), today.getMonth(), 1)
+        break
+      case 'lastMonth':
+        from = new Date(today.getFullYear(), today.getMonth() - 1, 1)
+        const to = new Date(today.getFullYear(), today.getMonth(), 0)
+        setFromDate(from.toISOString().split('T')[0])
+        setToDate(to.toISOString().split('T')[0])
+        return
+      case 'last3Months':
+        from = new Date(today.getFullYear(), today.getMonth() - 2, 1)
+        break
+    }
+    setFromDate(from.toISOString().split('T')[0])
+    setToDate(today.toISOString().split('T')[0])
+  }
+
+  const fetchAccounts = async () => {
+    try {
+      const res = await fetch('/api/accounts')
+      const data = await res.json()
+      setAccounts(data)
+      setSelectedAccounts(data.map((a: Account) => a.id))
+    } catch (err) {
+      console.error('Failed to fetch accounts:', err)
+    }
+  }
+
+  const handleAnalyze = async () => {
+    setLoading(true)
+    try {
+      const params = new URLSearchParams()
+      selectedAccounts.forEach((id) => params.append('accountIds', id))
+      if (fromDate) params.append('fromDate', fromDate)
+      if (toDate) params.append('toDate', toDate)
+
+      const res = await fetch(`/api/analyze?${params.toString()}`)
+      const result = await res.json()
+      setData(result)
+      setAnalyzed(true)
+    } catch (err) {
+      console.error('Analysis failed:', err)
+    } finally {
+      setLoading(false)
+    }
+  }
+
+  const formatCurrency = (value: number) => {
+    return new Intl.NumberFormat('en-US', {
+      style: 'currency',
+      currency: 'USD',
+    }).format(value)
+  }
+
+  if (!analyzed) {
+    return (
+      <div className="bg-card rounded-lg shadow-md p-6 border border-border">
+        {/* Date Presets */}
+        <div className="mb-6">
+          <h3 className="text-sm font-semibold text-foreground mb-3">Quick Date Range</h3>
+              <div className="flex flex-wrap gap-2">
+                <Button
+                  onClick={() => setDatePreset('thisMonth')}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                >
+                  This Month
+                </Button>
+                <Button
+                  onClick={() => setDatePreset('lastMonth')}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                >
+                  Last Month
+                </Button>
+                <Button
+                  onClick={() => setDatePreset('last3Months')}
+                  variant="outline"
+                  size="sm"
+                  className="text-xs"
+                >
+                  Last 3 Months
+                </Button>
+              </div>
+            </div>
+
+            {/* Filters */}
+            <div className="grid grid-cols-1 md:grid-cols-12 gap-4 mb-6">
+              <div className="md:col-span-5">
+                <label className="text-sm font-medium text-foreground block mb-2">Accounts</label>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {accounts.map((account) => (
+                    <label key={account.id} className="flex items-center gap-2 text-sm">
+                      <input
+                        type="checkbox"
+                        checked={selectedAccounts.includes(account.id)}
+                        onChange={(e) => {
+                          if (e.target.checked) {
+                            setSelectedAccounts([...selectedAccounts, account.id])
+                          } else {
+                            setSelectedAccounts(selectedAccounts.filter((id) => id !== account.id))
+                          }
+                        }}
+                        className="rounded"
+                      />
+                      {account.name}
+                    </label>
+                  ))}
+                </div>
+              </div>
+
+              <div className="md:col-span-3">
+                <label className="text-sm font-medium text-foreground block mb-2">Date From</label>
+                <input
+                  type="date"
+                  value={fromDate}
+                  onChange={(e) => setFromDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-md border border-border bg-input text-foreground text-sm"
+                />
+              </div>
+
+              <div className="md:col-span-3">
+                <label className="text-sm font-medium text-foreground block mb-2">Date To</label>
+                <input
+                  type="date"
+                  value={toDate}
+                  onChange={(e) => setToDate(e.target.value)}
+                  className="w-full px-3 py-2 rounded-md border border-border bg-input text-foreground text-sm"
+                />
+              </div>
+            </div>
+
+            <Button onClick={handleAnalyze} disabled={loading} className="w-full">
+              {loading ? 'Analyzing...' : 'Analyze'}
+            </Button>
+      </div>
+    )
+  }
+
+  if (!data) return null
+
+  return (
+    <div className="space-y-6">
+      <div className="flex justify-between items-center">
+        <p className="text-sm text-muted-foreground">
+          {data.dateRange.from && data.dateRange.to
+            ? `${new Date(data.dateRange.from).toLocaleDateString()} - ${new Date(
+                data.dateRange.to
+              ).toLocaleDateString()}`
+            : 'All time'}
+        </p>
+        <Button onClick={handleAnalyze} variant="outline" size="sm">
+          Change Filters
+        </Button>
+      </div>
+
+        {/* Summary Cards */}
+        <div className="grid grid-cols-1 md:grid-cols-2 lg:grid-cols-5 gap-4 mb-8">
+          <div className="bg-card border border-border rounded-lg p-4 md:p-6">
+            <p className="text-xs md:text-sm text-muted-foreground mb-1">Total Income</p>
+            <p className="text-2xl md:text-3xl font-bold text-accent">
+              {formatCurrency(data.summary.totalIncome)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">Income tracked</p>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg p-4 md:p-6">
+            <p className="text-xs md:text-sm text-muted-foreground mb-1">Total Expense</p>
+            <p className="text-2xl md:text-3xl font-bold text-destructive">
+              {formatCurrency(data.summary.totalExpense)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">Expenses tracked</p>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg p-4 md:p-6">
+            <p className="text-xs md:text-sm text-muted-foreground mb-1">Vs Last Month</p>
+            <div className="flex items-baseline gap-2">
+              <p className="text-2xl md:text-3xl font-bold text-destructive">
+                {Math.abs(data.summary.expenseChange).toFixed(1)}%
+              </p>
+              {data.summary.expenseChange > 0 ? (
+                <TrendingUp className="h-5 w-5 text-destructive" />
+              ) : (
+                <TrendingDown className="h-5 w-5 text-accent" />
+              )}
+            </div>
+            <p className="text-xs text-muted-foreground mt-2">
+              {data.summary.expenseChange > 0 ? 'Higher' : 'Lower'} than previous month
+            </p>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg p-4 md:p-6">
+            <p className="text-xs md:text-sm text-muted-foreground mb-1">Saved / Deficit</p>
+            <p
+              className={`text-2xl md:text-3xl font-bold ${
+                data.summary.saved >= 0 ? 'text-accent' : 'text-destructive'
+              }`}
+            >
+              {formatCurrency(data.summary.saved)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">Net this period</p>
+          </div>
+
+          <div className="bg-card border border-border rounded-lg p-4 md:p-6">
+            <p className="text-xs md:text-sm text-muted-foreground mb-1">Daily Avg</p>
+            <p className="text-2xl md:text-3xl font-bold text-primary">
+              {formatCurrency(data.summary.avgDailySpend)}
+            </p>
+            <p className="text-xs text-muted-foreground mt-2">
+              Projected: {formatCurrency(data.summary.projectedSpending)}
+            </p>
+          </div>
+        </div>
+
+        {/* Top 5 Categories */}
+        {data.topCategories && data.topCategories.length > 0 && (
+          <div className="bg-card border border-border rounded-lg p-6 mb-8">
+            <h3 className="text-lg font-bold text-foreground mb-4">Top 5 Categories</h3>
+            <div className="space-y-3">
+              {data.topCategories.map((category, idx) => (
+                <div key={idx} className="flex items-center justify-between">
+                  <div className="flex items-center gap-3 flex-1">
+                    {category.color && (
+                      <div
+                        className="w-3 h-3 rounded-full shrink-0"
+                        style={{ backgroundColor: category.color }}
+                      />
+                    )}
+                    <span className="text-sm text-foreground">{category.name}</span>
+                  </div>
+                  <div className="flex items-center gap-4">
+                    <span className="text-sm font-semibold text-foreground">
+                      {formatCurrency(category.amount)}
+                    </span>
+                    <span className="text-xs text-muted-foreground w-12 text-right">
+                      {((category.amount / data.summary.totalExpense) * 100).toFixed(1)}%
+                    </span>
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
+        {/* Spending by Category */}
+        <div className="bg-card border border-border rounded-lg p-6 mb-8">
+          <h3 className="text-lg font-bold text-foreground mb-6">Spending by Category</h3>
+
+          <div className="flex gap-2 mb-6">
+            <Button
+              onClick={() => setViewMode('graph')}
+              variant={viewMode === 'graph' ? 'default' : 'outline'}
+              size="sm"
+              className="text-xs"
+            >
+              <BarChart3 className="h-4 w-4 mr-2" />
+              Chart
+            </Button>
+            <Button
+              onClick={() => setViewMode('details')}
+              variant={viewMode === 'details' ? 'default' : 'outline'}
+              size="sm"
+              className="text-xs"
+            >
+              <Table2 className="h-4 w-4 mr-2" />
+              Details
+            </Button>
+          </div>
+
+          {viewMode === 'graph' && (
+            <div className="w-full h-80">
+              <ResponsiveContainer width="100%" height="100%">
+                <PieChart>
+                  <Pie
+                    data={data.byCategory.map((cat) => ({
+                      name: cat.name,
+                      value: Number(cat.amount.toFixed(2)),
+                    }))}
+                    cx="50%"
+                    cy="50%"
+                    labelLine={false}
+                    label={({ name, percent = 0 }) => `${name} ${(percent * 100).toFixed(0)}%`}
+                    outerRadius={120}
+                    fill="#8884d8"
+                    dataKey="value"
+                  >
+                    {data.byCategory.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.color || COLORS[index % COLORS.length]} />
+                    ))}
+                  </Pie>
+                  <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                </PieChart>
+              </ResponsiveContainer>
+            </div>
+          )}
+
+          {viewMode === 'details' && (
+            <div className="space-y-4">
+              {data.byCategory.map((category) => {
+                const percentage = ((category.amount / data.summary.totalExpense) * 100).toFixed(1)
+                const budgetExceeded = category.budget > 0 && category.amount > category.budget
+                const budgetStatus = category.budget > 0
+                  ? category.amount <= category.budget
+                    ? 'Within Budget'
+                    : `Over by ${formatCurrency(category.amount - category.budget)}`
+                  : 'No Budget'
+
+                return (
+                  <div key={category.name} className="border border-border rounded-lg p-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        {category.color && (
+                          <div
+                            className="w-3 h-3 rounded-full"
+                            style={{ backgroundColor: category.color }}
+                          />
+                        )}
+                        <h4 className="text-sm font-semibold text-foreground">{category.name}</h4>
+                      </div>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          budgetExceeded
+                            ? 'bg-destructive/10 text-destructive'
+                            : category.budget > 0
+                              ? 'bg-accent/10 text-accent'
+                              : 'bg-muted text-muted-foreground'
+                        }`}
+                      >
+                        {budgetStatus}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-3 gap-3 mb-3 text-xs">
+                      <div className="bg-muted rounded p-2">
+                        <p className="text-muted-foreground">Spent</p>
+                        <p className="font-semibold text-foreground">{formatCurrency(category.amount)}</p>
+                      </div>
+                      <div className="bg-muted rounded p-2">
+                        <p className="text-muted-foreground">Budget</p>
+                        <p className="font-semibold text-foreground">
+                          {category.budget > 0 ? formatCurrency(category.budget) : '—'}
+                        </p>
+                      </div>
+                      <div className="bg-muted rounded p-2">
+                        <p className="text-muted-foreground">
+                          {category.budget > 0 ? '% of Budget' : '% of Total'}
+                        </p>
+                        <p className="font-semibold text-foreground">
+                          {category.budget > 0
+                            ? Math.min(((category.amount / category.budget) * 100), 100).toFixed(1)
+                            : percentage}
+                          %
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="w-full bg-muted rounded-md h-3 overflow-hidden">
+                      <div
+                        className={`h-full transition-all duration-300 ${
+                          budgetExceeded ? 'bg-destructive' : 'bg-accent'
+                        }`}
+                        style={{
+                          width: `${
+                            category.budget > 0
+                              ? Math.min((category.amount / category.budget) * 100, 100)
+                              : (category.amount / data.summary.totalExpense) * 100
+                          }%`,
+                        }}
+                      />
+                    </div>
+                  </div>
+                )
+              })}
+            </div>
+          )}
+        </div>
+
+        {/* Breakdown by Account */}
+        <div className="bg-card border border-border rounded-lg p-6">
+          <h3 className="text-lg font-bold text-foreground mb-6">Breakdown by Account</h3>
+          <div className="space-y-6">
+            {data.byAccount.map((account) => {
+              const net = account.income - account.expense
+              const total = account.income + account.expense
+              const incomePercent = total > 0 ? (account.income / total) * 100 : 0
+              const expensePercent = total > 0 ? (account.expense / total) * 100 : 0
+              const expenseStatus =
+                data.summary.totalExpense > 0
+                  ? account.expense > 0
+                    ? `${(
+                        (account.expense / data.summary.totalExpense) *
+                        100
+                      ).toFixed(1)}% of Total`
+                    : 'No Expenses'
+                  : 'N/A'
+
+              return (
+                <div key={account.id} className="border border-border rounded-lg p-4">
+                  <div className="mb-4">
+                    <div className="flex items-center justify-between mb-2">
+                      <div className="flex items-center gap-2">
+                        <div className="w-3 h-3 rounded-full bg-primary" />
+                        <h4 className="text-sm font-semibold text-foreground">{account.name}</h4>
+                      </div>
+                      <span
+                        className={`text-xs px-2 py-1 rounded-full font-medium ${
+                          net >= 0
+                            ? 'bg-accent/10 text-accent'
+                            : 'bg-destructive/10 text-destructive'
+                        }`}
+                      >
+                        {net >= 0 ? 'Savings' : 'Deficit'}
+                      </span>
+                    </div>
+
+                    <div className="grid grid-cols-2 gap-3 mb-3 text-sm">
+                      <div className="bg-muted rounded p-2">
+                        <p className="text-xs text-muted-foreground">Expense Status</p>
+                        <p className="font-semibold text-foreground">{expenseStatus}</p>
+                      </div>
+                      <div className="bg-muted rounded p-2">
+                        <p className="text-xs text-muted-foreground">Income vs Expense</p>
+                        <p className="font-semibold text-foreground">
+                          {incomePercent.toFixed(0)}% / {expensePercent.toFixed(0)}%
+                        </p>
+                      </div>
+                    </div>
+
+                    <div className="flex h-8 gap-1 rounded-md overflow-hidden bg-muted">
+                      {account.income > 0 && (
+                        <div
+                          className="bg-accent transition-all duration-300 hover:brightness-110"
+                          style={{ width: `${incomePercent}%` }}
+                          title={`Income: ${formatCurrency(account.income)}`}
+                        />
+                      )}
+                      {account.expense > 0 && (
+                        <div
+                          className="bg-destructive transition-all duration-300 hover:brightness-110"
+                          style={{ width: `${expensePercent}%` }}
+                          title={`Expense: ${formatCurrency(account.expense)}`}
+                        />
+                      )}
+                      {total === 0 && <div className="w-full bg-muted-foreground" />}
+                    </div>
+                  </div>
+
+                  <div className="grid grid-cols-3 gap-3 text-sm">
+                    <div className="bg-accent/10 rounded p-3 text-center">
+                      <p className="text-xs text-muted-foreground">Income</p>
+                      <p className="font-bold text-accent">{formatCurrency(account.income)}</p>
+                    </div>
+                    <div className="bg-destructive/10 rounded p-3 text-center">
+                      <p className="text-xs text-muted-foreground">Expense</p>
+                      <p className="font-bold text-destructive">{formatCurrency(account.expense)}</p>
+                    </div>
+                    <div
+                      className={`rounded p-3 text-center ${
+                        net >= 0 ? 'bg-primary/10' : 'bg-muted'
+                      }`}
+                    >
+                      <p className="text-xs text-muted-foreground">Net</p>
+                      <p
+                        className={`font-bold ${
+                          net >= 0 ? 'text-primary' : 'text-muted-foreground'
+                        }`}
+                      >
+                        {formatCurrency(net)}
+                      </p>
+                    </div>
+                  </div>
+                </div>
+              )
+            })}
+          </div>
+        </div>
+      </div>
+    </div>
+  )
+}
