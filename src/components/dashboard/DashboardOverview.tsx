@@ -254,28 +254,6 @@ export default function DashboardOverview({
           </div>
         </div>
       </div>
-
-      {/* Quick Actions */}
-      <div className="flex gap-4 flex-wrap">
-        <Link href="/dashboard/transactions/new">
-          <Button>
-            <Plus className="mr-2 h-4 w-4" />
-            Add Transaction
-          </Button>
-        </Link>
-        <Link href="/dashboard/accounts/new">
-          <Button variant="outline">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Account
-          </Button>
-        </Link>
-        <Link href="/dashboard/categories">
-          <Button variant="outline">
-            <Plus className="mr-2 h-4 w-4" />
-            Add Category
-          </Button>
-        </Link>
-      </div>
     </div>
   )
 }

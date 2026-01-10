@@ -1,7 +1,12 @@
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { redirect } from 'next/navigation'
+import Link from 'next/link'
+import { Button } from '@/components/ui/button'
+import { Plus } from 'lucide-react'
 import DashboardOverview from '@/components/dashboard/DashboardOverview'
+import BudgetTracker from '@/components/dashboard/BudgetTracker'
+import { GoalsTracker } from '@/components/dashboard/GoalsTracker'
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -81,13 +86,37 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-      <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+      <div className="flex items-center justify-between">
+        <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+        <div className="flex gap-3">
+          <Link href="/dashboard/transactions/new">
+            <Button>
+              <Plus className="mr-2 h-4 w-4" />
+              Add Transaction
+            </Button>
+          </Link>
+          <Link href="/dashboard/accounts/new">
+            <Button variant="outline">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Account
+            </Button>
+          </Link>
+          <Link href="/dashboard/categories">
+            <Button variant="outline">
+              <Plus className="mr-2 h-4 w-4" />
+              Add Category
+            </Button>
+          </Link>
+        </div>
+      </div>
       <DashboardOverview
         accounts={accounts}
         transactions={transactions}
         categories={categories}
         recurringTransactions={recurringTransactions}
       />
+      <BudgetTracker />
+      <GoalsTracker />
     </div>
   )
 }
