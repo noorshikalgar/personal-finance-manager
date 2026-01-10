@@ -148,7 +148,7 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
             <p className="text-foreground font-mono text-sm">{user.id}</p>
           </div>
 
-          <div className="grid grid-cols-2 gap-4">
+          <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
                 <Calendar className="inline h-4 w-4 mr-1" />
@@ -234,7 +234,7 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
         </div>
         <div className="p-6 space-y-4">
           <div className="p-4 bg-card rounded-lg border border-border">
-            <div className="flex items-start justify-between mb-3">
+            <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between mb-3">
               <div className="flex-1">
                 <div className="flex items-center">
                   <FileSpreadsheet className="h-5 w-5 text-primary mr-2" />
@@ -247,7 +247,7 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
               <Button
                 onClick={handleExportData}
                 disabled={exportLoading}
-                className="ml-4 shrink-0"
+                className="w-full sm:w-auto sm:ml-4"
               >
                 {exportLoading ? 'Exporting...' : 'Export Excel'}
               </Button>
@@ -266,7 +266,7 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
             </div>
           </div>
 
-          <div className="flex items-start justify-between p-4 bg-card rounded-lg border border-border">
+          <div className="flex flex-col gap-4 sm:flex-row sm:items-start sm:justify-between p-4 bg-card rounded-lg border border-border">
             <div className="flex-1">
               <div className="flex items-center">
                 <Trash2 className="h-5 w-5 text-destructive mr-2" />
@@ -279,7 +279,7 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
             <Button
               variant="outline"
               onClick={() => setShowDeleteModal(true)}
-              className="ml-4 text-red-600 hover:text-muted-foreground hover:bg-card border-red-300"
+              className="w-full sm:w-auto sm:ml-4 text-red-600 hover:text-muted-foreground hover:bg-card border-red-300"
             >
               Delete Account
             </Button>

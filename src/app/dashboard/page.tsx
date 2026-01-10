@@ -101,23 +101,23 @@ export default async function DashboardPage() {
 
   return (
     <div className="space-y-6">
-        <div className="flex items-center justify-between">
+        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <div className="flex gap-3">
+          <div className="grid w-full gap-3 sm:auto-cols-fr sm:grid-flow-col md:w-auto">
             <Link href="/dashboard/transactions/new">
-              <Button>
+              <Button className="w-full">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Transaction
               </Button>
             </Link>
             <Link href="/dashboard/accounts/new">
-              <Button variant="outline">
+              <Button variant="outline" className="w-full">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Account
               </Button>
             </Link>
             <Link href="/dashboard/categories">
-              <Button variant="outline">
+              <Button variant="outline" className="w-full">
                 <Plus className="mr-2 h-4 w-4" />
                 Add Category
               </Button>
