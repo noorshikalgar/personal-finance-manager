@@ -1,46 +1,32 @@
-FROM node:20-bookworm-slim AS base
-RUN apt-get update && apt-get install -y openssl ca-certificates libc6 && rm -rf /var/lib/apt/lists/*
-WORKDIR /app
+# Stage 1: Build the application
+FROM node:20-alpine AS builder
+WORKDIR /usr/src/app
 
-# --- STAGE 1: Build ---
-FROM base AS builder
-COPY package.json package-lock.json* ./
-# We install EVERYTHING here to ensure builds/migrations have all tools
-RUN npm ci --include=optional
+COPY package*.json ./
+RUN npm ci --only=production=false && npm cache clean --force
+
 COPY . .
-RUN npx prisma generate
 RUN npm run build
 
-# --- STAGE 2: Runner ---
-FROM base AS runner
-WORKDIR /app
+# Stage 2: Run the application
+FROM node:20-alpine AS production
+# Optional: Install dumb-init for proper signal handling and curl for healthchecks
+RUN apk add --no-cache dumb-init curl
 
-# Create user with home directory
-RUN addgroup --system --gid 1001 nodejs && \
-    adduser --system --uid 1001 --home /home/nextjs nextjs
+WORKDIR /usr/src/app
 
-# Set up NPM cache directory for the user so npx doesn't fail
-ENV NPM_CONFIG_CACHE=/home/nextjs/.npm
-ENV NEXT_TELEMETRY_DISABLED=1
-ENV NODE_ENV=production
+# Create a non-root user for security
+RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 -G nodejs
+USER nestjs
 
-# Copy standalone build
-COPY --from=builder /app/public ./public
-COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
-COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+# Copy only necessary files from the builder stage
+COPY --from=builder /usr/src/app/package*.json ./
+RUN npm ci --only=production && npm cache clean --force
+COPY --from=builder /usr/src/app/dist ./dist
 
-# Instead of copying node_modules, we rely on the fact that Prisma CLI 
-# is actually needed for migrations. standalone mode removes it.
-# So we copy the Prisma CLI back in one go.
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
-# This is the "missing" stuff from your error:
-COPY --from=builder --chown=nextjs:nodejs /app/node_modules/valibot ./node_modules/valibot
+EXPOSE 3000
+HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 CMD curl -f http://localhost:3000/health || exit 1
 
-USER nextjs
-
-# The CMD now uses npx but it will WORK because:
-# 1. The user has a /home/nextjs directory to cache things
-# 2. We provided the local node_modules it was missing
-CMD npx prisma migrate deploy && node server.js
+# Use dumb-init to handle signals properly (optional, but recommended)
+ENTRYPOINT ["dumb-init", "--"]
+CMD ["node", "dist/main.js"]
