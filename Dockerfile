@@ -1,55 +1,63 @@
+# Use Node 20 as the base for all stages
 FROM node:20-bookworm-slim AS base
 
-# Install dependencies only when needed
+# --- STAGE 1: Install dependencies ---
 FROM base AS deps
-RUN apt-get update && \
-	apt-get install -y --no-install-recommends openssl ca-certificates && \
-	rm -rf /var/lib/apt/lists/*
+# Install native dependencies required for Prisma and native binaries
+RUN apt-get update && apt-get install -y \
+    openssl \
+    ca-certificates \
+    libc6 \
+    && rm -rf /var/lib/apt/lists/*
+
 WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
 
-# Increase timeout and retries for slow connections
-ENV NPM_CONFIG_FETCH_RETRIES=5
-ENV NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000
-ENV NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000
-
-# Try increasing the network autoselection timeout (common fix for Node 20+)
-ENV NODE_OPTIONS="--network-family-autoselection-attempt-timeout=1000"
-
+# Install ALL dependencies including optional native binaries for Linux
+# We use --include=optional to ensure lightningcss/oxide binaries are pulled
 RUN npm ci --include=optional
 
-# Rebuild the source code only when needed
+# --- STAGE 2: Build the application ---
 FROM base AS builder
 WORKDIR /app
+
+# Copy node_modules from deps stage
 COPY --from=deps /app/node_modules ./node_modules
 COPY . .
 
 # Generate Prisma Client
 RUN npx prisma generate
 
-# Build Next.js
+# Set environment variables for build
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+# Build Next.js (This will use Turbopack if configured in next.config)
 RUN npm run build
 
-# Production image, copy all the files and run next
+# --- STAGE 3: Production Runner ---
 FROM base AS runner
 WORKDIR /app
 
 ENV NODE_ENV=production
 ENV NEXT_TELEMETRY_DISABLED=1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-RUN addgroup --system --gid 1001 nodejs
-RUN adduser --system --uid 1001 nextjs
+# Create a non-root user for security
+RUN addgroup --system --gid 1001 nodejs && \
+    adduser --system --uid 1001 nextjs
 
-# Copy built application
+# Copy built standalone folder and static files
+# Note: standalone mode must be enabled in next.config.ts
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
 COPY --from=builder /app/prisma ./prisma
 
-# Copy node_modules for Prisma
+# Copy Prisma binaries for the runner
 COPY --from=builder /app/node_modules/.prisma ./node_modules/.prisma
 COPY --from=builder /app/node_modules/@prisma ./node_modules/@prisma
 
@@ -57,8 +65,5 @@ USER nextjs
 
 EXPOSE 3000
 
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-# Start script that runs migrations before starting the app
+# Script to run migrations and start the server
 CMD npx prisma migrate deploy && node server.js
