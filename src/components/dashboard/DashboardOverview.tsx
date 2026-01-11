@@ -180,7 +180,7 @@ export default function DashboardOverview({
               </Button>
             </Link>
           </div>
-          <div className="px-6 pb-6">
+          <div className="p-6">
             {categorySpending.length === 0 ? (
               <p className="text-muted-foreground text-sm text-center py-4">
                 No spending this month
@@ -189,22 +189,27 @@ export default function DashboardOverview({
               <div className="space-y-4">
                 {categorySpending.slice(0, 5).map((cat) => (
                   <div key={cat.name}>
-                    <div className="flex justify-between text-sm mb-1">
+                    <div className="flex justify-between text-sm mb-2">
                       <span className="font-medium text-card-foreground">{cat.name}</span>
                       <span className="text-muted-foreground">
                         {formatAmount(cat.spent)}
                         {cat.budget && ` / ${formatAmount(cat.budget)}`}
                       </span>
                     </div>
-                    {cat.budget && (
-                      <div className="w-full bg-muted rounded-full h-2">
+                    <div className="w-full bg-muted rounded-full h-2">
+                      {cat.budget ? (
                         <div
-                          className={`h-2 rounded-full ${
-                            cat.percentage > 100 ? 'bg-destructive' : cat.percentage > 80 ? 'bg-secondary' : 'bg-accent'
+                          className={`h-2 rounded-full transition-all ${
+                            cat.percentage > 100 ? 'bg-destructive' : cat.percentage > 80 ? 'bg-amber-500' : 'bg-accent'
                           }`}
                           style={{ width: `${Math.min(cat.percentage, 100)}%` }}
                         />
-                      </div>
+                      ) : (
+                        <div className="h-2 rounded-full bg-primary/30" style={{ width: '100%' }} />
+                      )}
+                    </div>
+                    {!cat.budget && (
+                      <p className="text-xs text-muted-foreground mt-1">No budget set</p>
                     )}
                   </div>
                 ))}

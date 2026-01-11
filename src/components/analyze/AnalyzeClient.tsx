@@ -5,6 +5,7 @@ import { Button } from '@/components/ui/button'
 import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Tooltip, Legend, ResponsiveContainer } from 'recharts'
 import { ChartContainer, ChartTooltip, ChartLegend } from '@/components/ui/chart'
 import { BarChart3, Table2 } from 'lucide-react'
+import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
 
 interface Account {
   id: string
@@ -49,6 +50,7 @@ interface AnalyzeData {
 }
 
 export default function AnalyzeClient() {
+  const { formatAmount } = useAmountVisibility()
   const [accounts, setAccounts] = useState<Account[]>([])
   const [selectedAccounts, setSelectedAccounts] = useState<string[]>([])
   const [fromDate, setFromDate] = useState('')
@@ -170,14 +172,6 @@ export default function AnalyzeClient() {
     checkDatePreset()
   }, [fromDate, toDate])
 
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-      minimumFractionDigits: 2,
-    }).format(amount)
-  }
-
   return (
     <div className="space-y-8">
       {/* Filters Section */}
@@ -271,7 +265,7 @@ export default function AnalyzeClient() {
             <div className="bg-card rounded-lg p-6 border border-border">
               <p className="text-sm font-medium text-muted-foreground mb-2">Total Income</p>
               <p className="text-2xl font-bold text-accent">
-                {formatCurrency(data.summary.totalIncome)}
+                {formatAmount(data.summary.totalIncome)}
               </p>
               <p className="text-xs text-muted-foreground mt-2">
                 {data.summary.transactionCount > 0 ? 'Income tracked' : 'No income'}
@@ -282,7 +276,7 @@ export default function AnalyzeClient() {
             <div className="bg-card rounded-lg p-6 border border-border">
               <p className="text-sm font-medium text-muted-foreground mb-2">Total Expense</p>
               <p className="text-2xl font-bold text-destructive">
-                {formatCurrency(data.summary.totalExpense)}
+                {formatAmount(data.summary.totalExpense)}
               </p>
               <p className="text-xs text-muted-foreground mt-2">
                 {data.summary.transactionCount > 0 ? 'Expenses tracked' : 'No expenses'}
@@ -303,7 +297,7 @@ export default function AnalyzeClient() {
                   data.summary.saved >= 0 ? 'text-primary' : 'text-destructive'
                 }`}
               >
-                {formatCurrency(data.summary.saved)}
+                {formatAmount(data.summary.saved)}
               </p>
               <p className="text-xs text-muted-foreground mt-2">
                 {data.summary.saved >= 0 ? 'You saved this amount' : 'You spent more than earned'}
@@ -326,7 +320,7 @@ export default function AnalyzeClient() {
                 <div className="bg-card rounded-lg p-6 border border-border">
                   <p className="text-sm font-medium text-muted-foreground mb-2">Average Daily Spend</p>
                   <p className="text-2xl font-bold text-primary">
-                    {formatCurrency(data.summary.avgDailySpend)}
+                    {formatAmount(data.summary.avgDailySpend)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">Per day average</p>
                 </div>
@@ -337,7 +331,7 @@ export default function AnalyzeClient() {
                 <div className="bg-card rounded-lg p-6 border border-border">
                   <p className="text-sm font-medium text-muted-foreground mb-2">Projected Spending</p>
                   <p className="text-2xl font-bold text-accent">
-                    {formatCurrency(data.summary.projectedSpending)}
+                    {formatAmount(data.summary.projectedSpending)}
                   </p>
                   <p className="text-xs text-muted-foreground mt-2">If trend continues</p>
                 </div>
@@ -383,7 +377,7 @@ export default function AnalyzeClient() {
                     </div>
                     <div className="text-right">
                       <p className="font-semibold text-foreground">
-                        {formatCurrency(category.amount)}
+                        {formatAmount(category.amount)}
                       </p>
                       <p className="text-xs text-muted-foreground">
                         {((category.amount / data.summary.totalExpense) * 100).toFixed(1)}%
@@ -445,7 +439,7 @@ export default function AnalyzeClient() {
                             <Cell key={`cell-${index}`} fill={entry.color || '#8884d8'} />
                           ))}
                         </Pie>
-                        <Tooltip formatter={(value) => formatCurrency(Number(value))} />
+                        <Tooltip formatter={(value) => formatAmount(Number(value))} />
                       </PieChart>
                     </ResponsiveContainer>
                   </div>
@@ -462,7 +456,7 @@ export default function AnalyzeClient() {
                         category.budget > 0
                           ? category.amount <= category.budget
                             ? 'Within Budget'
-                            : `Over by ${formatCurrency(category.amount - category.budget)}`
+                            : `Over by ${formatAmount(category.amount - category.budget)}`
                           : 'No Budget'
 
                       return (
@@ -496,13 +490,13 @@ export default function AnalyzeClient() {
                             <div className="bg-secondary rounded p-2">
                               <p className="text-muted-foreground">Spent</p>
                               <p className="font-semibold text-foreground">
-                                {formatCurrency(category.amount)}
+                                {formatAmount(category.amount)}
                               </p>
                             </div>
                             <div className="bg-secondary rounded p-2">
                               <p className="text-muted-foreground">Budget</p>
                               <p className="font-semibold text-foreground">
-                                {category.budget > 0 ? formatCurrency(category.budget) : '—'}
+                                {category.budget > 0 ? formatAmount(category.budget) : '—'}
                               </p>
                             </div>
                             <div className="bg-secondary rounded p-2">
@@ -643,13 +637,13 @@ export default function AnalyzeClient() {
                               <div className="bg-card rounded p-3 text-center">
                                 <p className="text-xs text-muted-foreground">Income</p>
                                 <p className="text-sm font-bold text-green-600">
-                                  {formatCurrency(account.income)}
+                                  {formatAmount(account.income)}
                                 </p>
                               </div>
                               <div className="bg-card rounded p-3 text-center">
                                 <p className="text-xs text-muted-foreground">Expense</p>
                                 <p className="text-sm font-bold text-red-600">
-                                  {formatCurrency(account.expense)}
+                                  {formatAmount(account.expense)}
                                 </p>
                               </div>
                               <div
@@ -663,7 +657,7 @@ export default function AnalyzeClient() {
                                     net >= 0 ? 'text-blue-600' : 'text-orange-600'
                                   }`}
                                 >
-                                  {formatCurrency(net)}
+                                  {formatAmount(net)}
                                 </p>
                               </div>
                             </div>
@@ -744,13 +738,13 @@ export default function AnalyzeClient() {
                             <div className="bg-card rounded p-3 text-center">
                               <p className="text-xs text-muted-foreground">Income</p>
                               <p className="text-sm font-bold text-green-600">
-                                {formatCurrency(account.income)}
+                                {formatAmount(account.income)}
                               </p>
                             </div>
                             <div className="bg-card rounded p-3 text-center">
                               <p className="text-xs text-muted-foreground">Expense</p>
                               <p className="text-sm font-bold text-red-600">
-                                {formatCurrency(account.expense)}
+                                {formatAmount(account.expense)}
                               </p>
                             </div>
                             <div
@@ -764,7 +758,7 @@ export default function AnalyzeClient() {
                                   net >= 0 ? 'text-blue-600' : 'text-orange-600'
                                 }`}
                               >
-                                {formatCurrency(net)}
+                                {formatAmount(net)}
                               </p>
                             </div>
                           </div>

@@ -5,6 +5,7 @@ import { Category } from '@prisma/client'
 import { TrendingUp } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
 
 interface CategoryWithSpending extends Category {
   spent: number
@@ -13,6 +14,7 @@ interface CategoryWithSpending extends Category {
 }
 
 export default function BudgetTracker() {
+  const { formatAmount } = useAmountVisibility()
   const [categories, setCategories] = useState<CategoryWithSpending[]>([])
   const [loading, setLoading] = useState(true)
   const [totalBudget, setTotalBudget] = useState(0)
@@ -119,7 +121,7 @@ export default function BudgetTracker() {
           <div>
             <p className="text-sm text-muted-foreground mb-1">Total Budget</p>
             <p className="text-2xl font-bold text-foreground">
-              ${totalBudget.toFixed(2)}
+              {formatAmount(totalBudget)}
             </p>
           </div>
 
@@ -127,7 +129,7 @@ export default function BudgetTracker() {
           <div>
             <p className="text-sm text-muted-foreground mb-1">Total Spent</p>
             <p className="text-2xl font-bold text-foreground">
-              ${totalSpent.toFixed(2)}
+              {formatAmount(totalSpent)}
             </p>
           </div>
 
@@ -135,7 +137,7 @@ export default function BudgetTracker() {
           <div>
             <p className="text-sm text-muted-foreground mb-1">Remaining</p>
             <p className={`text-2xl font-bold ${totalSpent > totalBudget ? 'text-destructive' : 'text-accent'}`}>
-              ${(totalBudget - totalSpent).toFixed(2)}
+              {formatAmount(totalBudget - totalSpent)}
             </p>
           </div>
         </div>
@@ -196,10 +198,10 @@ export default function BudgetTracker() {
 
             {/* Budget Details */}
             <div className="flex justify-between text-xs text-muted-foreground">
-              <span>${category.spent.toFixed(2)} spent</span>
+              <span>{formatAmount(category.spent)} spent</span>
               <span>
                 {category.monthlyBudget
-                  ? `Budget: $${Number(category.monthlyBudget).toFixed(2)}`
+                  ? `Budget: ${formatAmount(Number(category.monthlyBudget))}`
                   : 'No budget set'}
               </span>
             </div>
@@ -207,7 +209,7 @@ export default function BudgetTracker() {
             {/* Status Message */}
             {category.status === 'exceeded' && (
               <p className="text-xs text-destructive mt-2 font-medium">
-                ⚠️ Over budget by ${(category.spent - Number(category.monthlyBudget || 0)).toFixed(2)}
+                ⚠️ Over budget by {formatAmount(category.spent - Number(category.monthlyBudget || 0))}
               </p>
             )}
             {category.status === 'caution' && (
