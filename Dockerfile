@@ -9,6 +9,15 @@ WORKDIR /app
 
 # Copy package files
 COPY package.json package-lock.json* ./
+
+# Increase timeout and retries for slow connections
+ENV NPM_CONFIG_FETCH_RETRIES=5
+ENV NPM_CONFIG_FETCH_RETRY_MINTIMEOUT=20000
+ENV NPM_CONFIG_FETCH_RETRY_MAXTIMEOUT=120000
+
+# Try increasing the network autoselection timeout (common fix for Node 20+)
+ENV NODE_OPTIONS="--network-family-autoselection-attempt-timeout=1000"
+
 RUN npm ci --include=optional
 
 # Rebuild the source code only when needed
