@@ -1,32 +1,43 @@
-# Stage 1: Build the application
-FROM node:20-alpine AS builder
-WORKDIR /usr/src/app
+# Stage 1: Dependencies
+FROM node:22-alpine AS deps
+RUN apk add --no-cache libc6-compat
+WORKDIR /app
 
-COPY package*.json ./
-RUN npm ci --only=production=false && npm cache clean --force
+COPY package.json package-lock.json ./
+COPY prisma ./prisma/
+# Install dependencies including Prisma Client
+RUN npm ci
 
+# Stage 2: Builder
+FROM node:22-alpine AS builder
+WORKDIR /app
+COPY --from=deps /app/node_modules ./node_modules
 COPY . .
+
+# Generate Prisma Client and build the app
+# Tailwind & Shadcn are processed during this build step
+RUN npx prisma generate
 RUN npm run build
 
-# Stage 2: Run the application
-FROM node:20-alpine AS production
-# Optional: Install dumb-init for proper signal handling and curl for healthchecks
-RUN apk add --no-cache dumb-init curl
+# Stage 3: Runner
+FROM node:22-alpine AS runner
+WORKDIR /app
 
-WORKDIR /usr/src/app
+ENV NODE_ENV=production
 
-# Create a non-root user for security
-RUN addgroup -g 1001 -S nodejs && adduser -S nestjs -u 1001 -G nodejs
-USER nestjs
+# Security: Don't run as root
+RUN addgroup --system --gid 1001 nodejs
+RUN adduser --system --uid 1001 nextjs
 
-# Copy only necessary files from the builder stage
-COPY --from=builder /usr/src/app/package*.json ./
-RUN npm ci --only=production && npm cache clean --force
-COPY --from=builder /usr/src/app/dist ./dist
+COPY --from=builder /app/public ./public
+# Automatically leverages output: 'standalone'
+COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
+COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
+
+USER nextjs
 
 EXPOSE 3000
-HEALTHCHECK --interval=30s --timeout=3s --start-period=10s --retries=3 CMD curl -f http://localhost:3000/health || exit 1
+ENV PORT=3000
+ENV HOSTNAME="0.0.0.0"
 
-# Use dumb-init to handle signals properly (optional, but recommended)
-ENTRYPOINT ["dumb-init", "--"]
-CMD ["node", "dist/main.js"]
+CMD ["node", "server.js"]
