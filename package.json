@@ -53,5 +53,8 @@
   "trustedDependencies": [
     "sharp",
     "unrs-resolver"
-  ]
+  ],
+  "optionalDependencies": {
+    "lightningcss-linux-x64-gnu": "^1.30.2"
+  }
 }
