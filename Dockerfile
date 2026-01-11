@@ -1,54 +1,46 @@
-# Stage 1: Base
 FROM node:20-bookworm-slim AS base
-# Ensure openssl is available for Prisma
-RUN apt-get update && apt-get install -y openssl ca-certificates && rm -rf /var/lib/apt/lists/*
-
-# Stage 2: Dependencies
-FROM base AS deps
+RUN apt-get update && apt-get install -y openssl ca-certificates libc6 && rm -rf /var/lib/apt/lists/*
 WORKDIR /app
-COPY package.json package-lock.json* ./
-# Force installation of Linux-specific native binaries for Tailwind/Oxide
-RUN npm ci --include=optional
 
-# Stage 3: Builder
+# --- STAGE 1: Build ---
 FROM base AS builder
-WORKDIR /app
-COPY --from=deps /app/node_modules ./node_modules
+COPY package.json package-lock.json* ./
+# We install EVERYTHING here to ensure builds/migrations have all tools
+RUN npm ci --include=optional
 COPY . .
-# Generate the Prisma client during build
 RUN npx prisma generate
-ENV NODE_ENV=production
 RUN npm run build
 
-# Stage 4: Runner
+# --- STAGE 2: Runner ---
 FROM base AS runner
 WORKDIR /app
 
-ENV NODE_ENV=production
-ENV NEXT_TELEMETRY_DISABLED=1
-
-# 1. Create a user with a real home directory (Fixes the /nonexistent error)
+# Create user with home directory
 RUN addgroup --system --gid 1001 nodejs && \
     adduser --system --uid 1001 --home /home/nextjs nextjs
 
-# 2. Copy the standalone build (the most efficient way for Next.js)
+# Set up NPM cache directory for the user so npx doesn't fail
+ENV NPM_CONFIG_CACHE=/home/nextjs/.npm
+ENV NEXT_TELEMETRY_DISABLED=1
+ENV NODE_ENV=production
+
+# Copy standalone build
 COPY --from=builder /app/public ./public
 COPY --from=builder --chown=nextjs:nodejs /app/.next/standalone ./
 COPY --from=builder --chown=nextjs:nodejs /app/.next/static ./.next/static
-
-# 3. Copy Prisma files specifically for the migration command
-# We copy the 'prisma' engine and CLI from the builder's node_modules
 COPY --from=builder --chown=nextjs:nodejs /app/prisma ./prisma
+
+# Instead of copying node_modules, we rely on the fact that Prisma CLI 
+# is actually needed for migrations. standalone mode removes it.
+# So we copy the Prisma CLI back in one go.
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/prisma ./node_modules/prisma
 COPY --from=builder --chown=nextjs:nodejs /app/node_modules/@prisma ./node_modules/@prisma
+# This is the "missing" stuff from your error:
+COPY --from=builder --chown=nextjs:nodejs /app/node_modules/valibot ./node_modules/valibot
 
 USER nextjs
 
-EXPOSE 3000
-ENV PORT=3000
-ENV HOSTNAME="0.0.0.0"
-
-# 4. EXECUTION FIX:
-# Use the locally installed prisma binary instead of 'npx'. 
-# This prevents the container from trying to download Prisma or access '/nonexistent'.
-CMD node node_modules/prisma/build/index.js migrate deploy && node server.js
+# The CMD now uses npx but it will WORK because:
+# 1. The user has a /home/nextjs directory to cache things
+# 2. We provided the local node_modules it was missing
+CMD npx prisma migrate deploy && node server.js
