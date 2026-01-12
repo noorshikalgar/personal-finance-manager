@@ -178,11 +178,11 @@ export default function TransactionsClient() {
                     setFilterAccount(e.target.value)
                     setPage(1)
                   }}
-                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="">All Accounts</option>
+                  <option value="" className="bg-card text-foreground">All Accounts</option>
                   {accounts.map((account) => (
-                    <option key={account.id} value={account.id}>
+                    <option key={account.id} value={account.id} className="bg-card text-foreground">
                       {account.name}
                     </option>
                   ))}
@@ -198,12 +198,12 @@ export default function TransactionsClient() {
                     setFilterCategory(e.target.value)
                     setPage(1)
                   }}
-                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
                 >
-                  <option value="">All Categories</option>
-                  <option value="none">No Category</option>
+                  <option value="" className="bg-card text-foreground">All Categories</option>
+                  <option value="none" className="bg-card text-foreground">No Category</option>
                   {categories.map((category) => (
-                    <option key={category.id} value={category.id}>
+                    <option key={category.id} value={category.id} className="bg-card text-foreground">
                       {category.name}
                     </option>
                   ))}

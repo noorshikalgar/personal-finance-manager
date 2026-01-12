@@ -34,7 +34,7 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, monthlyBudget, color } = body
+    const { name, monthlyBudget, color, goalId } = body
 
     if (!name) {
       return NextResponse.json(
@@ -60,12 +60,16 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // Properly handle empty string as null for goalId
+    const validGoalId = goalId && goalId.trim() !== '' ? goalId : null
+
     const category = await prisma.category.create({
       data: {
         userId: session.user.id,
         name,
         monthlyBudget: monthlyBudget ? parseFloat(monthlyBudget) : null,
         color: color || '#3B82F6', // Default blue
+        goalId: validGoalId,
       },
     })
 

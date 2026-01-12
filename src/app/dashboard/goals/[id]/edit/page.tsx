@@ -6,6 +6,13 @@ import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
 
+type Category = {
+  id: string
+  name: string
+  color: string | null
+  goalId: string | null
+}
+
 const GOAL_CATEGORIES = [
   { value: 'SAVINGS', label: 'Savings', icon: '💰' },
   { value: 'DEBT_PAYOFF', label: 'Debt Payoff', icon: '📉' },
@@ -36,13 +43,39 @@ export default function EditGoalPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [categories, setCategories] = useState<Category[]>([]);
+  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const [formData, setFormData] = useState<Goal | null>(null);
 
   useEffect(() => {
     if (!goalId) return;
     fetchGoal();
+    fetchCategories();
   }, [goalId]);
+
+  const fetchCategories = async () => {
+    try {
+      const res = await fetch('/api/categories');
+      if (res.ok) {
+        const data = await res.json();
+        setCategories(data);
+        // Set initially selected categories (those linked to this goal)
+        const linkedCats = data.filter((cat: Category) => cat.goalId === goalId);
+        setSelectedCategories(linkedCats.map((cat: Category) => cat.id));
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories:', err);
+    }
+  };
+
+  const toggleCategory = (categoryId: string) => {
+    setSelectedCategories(prev => 
+      prev.includes(categoryId) 
+        ? prev.filter(id => id !== categoryId)
+        : [...prev, categoryId]
+    );
+  };
 
   const fetchGoal = async () => {
     try {
@@ -94,6 +127,7 @@ export default function EditGoalPage() {
         currentAmount: parseFloat(String(formData.currentAmount)),
         status: formData.status,
         deadline: formData.deadline ? new Date(formData.deadline).toISOString() : undefined,
+        categoryIds: selectedCategories,
       };
 
       const res = await fetch(`/api/goals/${goalId}`, {
@@ -238,6 +272,37 @@ export default function EditGoalPage() {
               onChange={handleChange}
               className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
             />
+          </div>
+
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-3">Link Categories (Optional)</label>
+            <p className="text-sm text-muted-foreground mb-3">
+              Select categories to track towards this goal. Spending/income in these categories will update goal progress.
+            </p>
+            {categories.length === 0 ? (
+              <p className="text-sm text-muted-foreground italic">No categories available. Create categories first.</p>
+            ) : (
+              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 border border-border rounded-lg">
+                {categories.map(cat => (
+                  <button
+                    key={cat.id}
+                    type="button"
+                    onClick={() => toggleCategory(cat.id)}
+                    className={`p-2 rounded-lg border text-sm font-medium transition-all flex items-center gap-2 ${
+                      selectedCategories.includes(cat.id)
+                        ? 'border-primary bg-primary/10 text-primary'
+                        : 'border-border bg-background text-foreground hover:bg-muted'
+                    }`}
+                  >
+                    <div 
+                      className="w-3 h-3 rounded-full" 
+                      style={{ backgroundColor: cat.color || '#6B7280' }}
+                    />
+                    <span className="truncate">{cat.name}</span>
+                  </button>
+                ))}
+              </div>
+            )}
           </div>
 
           <div>

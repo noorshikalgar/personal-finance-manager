@@ -366,10 +366,10 @@ export default function RecurringDetailsClient({
                 onChange={(e) =>
                   setFormData({ ...formData, accountId: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-border rounded-md"
+                className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground"
               >
                 {accounts.map((account) => (
-                  <option key={account.id} value={account.id}>
+                  <option key={account.id} value={account.id} className="bg-card text-foreground">
                     {account.name}
                   </option>
                 ))}
@@ -388,10 +388,10 @@ export default function RecurringDetailsClient({
               <select
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md"
+                className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground"
               >
-                <option value="INCOME">Income</option>
-                <option value="EXPENSE">Expense</option>
+                <option value="INCOME" className="bg-card text-foreground">Income</option>
+                <option value="EXPENSE" className="bg-card text-foreground">Expense</option>
               </select>
             ) : (
               <span
@@ -437,11 +437,11 @@ export default function RecurringDetailsClient({
                 onChange={(e) =>
                   setFormData({ ...formData, categoryId: e.target.value })
                 }
-                className="w-full px-3 py-2 border border-border rounded-md"
+                className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground"
               >
-                <option value="">Uncategorized</option>
+                <option value="" className="bg-card text-foreground">Uncategorized</option>
                 {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
+                  <option key={category.id} value={category.id} className="bg-card text-foreground">
                     {category.name}
                   </option>
                 ))}

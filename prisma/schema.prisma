@@ -86,6 +86,9 @@ model Category {
   monthlyBudget Decimal? @db.Decimal(12, 2) // Optional budget - visual only
   color         String?  // For UI visualization
   
+  goalId        String?  // Optional link to a Goal
+  goal          Goal?    @relation(fields: [goalId], references: [id], onDelete: SetNull)
+  
   createdAt DateTime @default(now())
   updatedAt DateTime @updatedAt
   
@@ -213,6 +216,8 @@ model Goal {
   createdAt     DateTime      @default(now())
   updatedAt     DateTime      @updatedAt
   completedAt   DateTime?     // When goal was completed
+  
+  categories    Category[]    // Categories linked to this goal
   
   @@index([userId])
   @@index([status])

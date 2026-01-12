@@ -18,7 +18,7 @@ import {
   EyeOff,
   ChevronDown
 } from 'lucide-react'
-import { useState } from 'react'
+import { useState, useEffect, useRef } from 'react'
 import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
 
 interface DashboardNavProps {
@@ -44,6 +44,23 @@ export default function DashboardNav({ userEmail }: DashboardNavProps) {
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false)
   const [moreMenuOpen, setMoreMenuOpen] = useState(false)
   const { isVisible, toggleVisibility } = useAmountVisibility()
+  const moreMenuRef = useRef<HTMLDivElement>(null)
+
+  // Close more menu when clicking outside
+  useEffect(() => {
+    const handleClickOutside = (event: MouseEvent) => {
+      if (moreMenuRef.current && !moreMenuRef.current.contains(event.target as Node)) {
+        setMoreMenuOpen(false)
+      }
+    }
+
+    if (moreMenuOpen) {
+      document.addEventListener('mousedown', handleClickOutside)
+      return () => {
+        document.removeEventListener('mousedown', handleClickOutside)
+      }
+    }
+  }, [moreMenuOpen])
 
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/auth/signin' })
@@ -83,7 +100,7 @@ export default function DashboardNav({ userEmail }: DashboardNavProps) {
             })}
 
             {/* More Menu */}
-            <div className="relative">
+            <div className="relative" ref={moreMenuRef}>
               <button
                 onClick={() => setMoreMenuOpen(!moreMenuOpen)}
                 className="inline-flex items-center px-3 py-2 text-sm font-medium text-muted-foreground hover:text-foreground hover:bg-muted rounded-md transition-colors"

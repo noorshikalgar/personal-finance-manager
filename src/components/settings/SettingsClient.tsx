@@ -242,8 +242,8 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
                   disabled={currencyLoading}
                   className="px-3 py-2 border border-border rounded-md bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
                 >
-                  <option value="INR">₹ Indian Rupee (INR)</option>
-                  <option value="USD">$ US Dollar (USD)</option>
+                  <option value="INR" className="bg-card text-foreground">₹ Indian Rupee (INR)</option>
+                  <option value="USD" className="bg-card text-foreground">$ US Dollar (USD)</option>
                 </select>
               </div>
             </div>

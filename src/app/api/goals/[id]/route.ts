@@ -35,7 +35,8 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const validatedData = UpdateGoalSchema.parse(body);
+    const { categoryIds, ...goalUpdateData } = body;
+    const validatedData = UpdateGoalSchema.parse(goalUpdateData);
 
     const updateData: any = {};
     if (validatedData.title !== undefined) updateData.title = validatedData.title;
@@ -57,6 +58,33 @@ export async function PUT(
       where: { id: id },
       data: updateData,
     });
+
+    // Update category links if provided
+    if (categoryIds !== undefined && Array.isArray(categoryIds)) {
+      // First, unlink all categories from this goal
+      await prisma.category.updateMany({
+        where: {
+          goalId: id,
+          userId: session.user.id,
+        },
+        data: {
+          goalId: null,
+        },
+      });
+
+      // Then link the selected categories
+      if (categoryIds.length > 0) {
+        await prisma.category.updateMany({
+          where: {
+            id: { in: categoryIds },
+            userId: session.user.id,
+          },
+          data: {
+            goalId: id,
+          },
+        });
+      }
+    }
 
     return NextResponse.json({
       goal: {

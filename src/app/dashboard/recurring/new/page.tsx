@@ -135,10 +135,10 @@ export default function NewRecurringPage() {
                 required
                 value={formData.type}
                 onChange={(e) => setFormData({ ...formData, type: e.target.value as 'INCOME' | 'EXPENSE' })}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="EXPENSE">Expense</option>
-                <option value="INCOME">Income</option>
+                <option value="EXPENSE" className="bg-card text-foreground">Expense</option>
+                <option value="INCOME" className="bg-card text-foreground">Income</option>
               </select>
             </div>
 
@@ -188,11 +188,11 @@ export default function NewRecurringPage() {
                 required
                 value={formData.accountId}
                 onChange={(e) => setFormData({ ...formData, accountId: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">Select an account</option>
+                <option value="" className="bg-card text-foreground">Select an account</option>
                 {accounts.map((account) => (
-                  <option key={account.id} value={account.id}>
+                  <option key={account.id} value={account.id} className="bg-card text-foreground">
                     {account.name}
                   </option>
                 ))}
@@ -206,11 +206,11 @@ export default function NewRecurringPage() {
               <select
                 value={formData.categoryId}
                 onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               >
-                <option value="">Select a category (optional)</option>
+                <option value="" className="bg-card text-foreground">Select a category (optional)</option>
                 {categories.map((category) => (
-                  <option key={category.id} value={category.id}>
+                  <option key={category.id} value={category.id} className="bg-card text-foreground">
                     {category.name}
                   </option>
                 ))}

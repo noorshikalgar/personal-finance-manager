@@ -60,7 +60,8 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json();
-    const validatedData = CreateGoalSchema.parse(body);
+    const { categoryIds, ...goalData } = body;
+    const validatedData = CreateGoalSchema.parse(goalData);
 
     const goal = await prisma.goal.create({
       data: {
@@ -73,6 +74,19 @@ export async function POST(req: NextRequest) {
         deadline: validatedData.deadline ? new Date(validatedData.deadline) : null,
       },
     });
+
+    // Link categories if provided
+    if (categoryIds && Array.isArray(categoryIds) && categoryIds.length > 0) {
+      await prisma.category.updateMany({
+        where: {
+          id: { in: categoryIds },
+          userId: session.user.id, // Security: ensure user owns these categories
+        },
+        data: {
+          goalId: goal.id,
+        },
+      });
+    }
 
     return NextResponse.json(
       {

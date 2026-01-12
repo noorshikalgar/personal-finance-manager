@@ -9,7 +9,7 @@ type RecurringTransaction = {
   id: string
   note: string | null
   amount: number
-  type: 'INCOME' | 'EXPENSE'
+  type: 'INCOME' | 'EXPENSE' | 'ADJUSTMENT'
   dayOfMonth: number
   paused: boolean
   lastRunAt: Date | null
