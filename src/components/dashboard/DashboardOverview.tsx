@@ -242,7 +242,7 @@ export default function DashboardOverview({
                       <Calendar className="h-4 w-4 text-muted-foreground mr-2" />
                       <div>
                         <p className="text-sm font-medium text-card-foreground">
-                          {rec.category?.name || 'Uncategorized'}
+                          {rec.note || rec.category?.name || 'Recurring Payment'}
                         </p>
                         <p className="text-xs text-muted-foreground">
                           {rec.nextDate.toLocaleDateString()}
