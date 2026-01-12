@@ -1,7 +1,284 @@
 # Personal Finance Manager - Development Progress
 
+## 🚨 CURRENT FOCUS: NEXTJS → TANSTACK + HONO MIGRATION
+
+**Migration Status:** Phase 1 - Planning Complete ✅  
+**Last Updated:** January 11, 2026  
+**Current Phase:** Awaiting frontend/backend folder creation
+
+---
+
+## 🔄 MIGRATION PROGRESS TRACKER
+
+### Phase 1: Project Setup
+**Status:** ⏳ IN PROGRESS (User creating folders)  
+**Started:** January 11, 2026
+
+- [ ] Create `frontend/` folder - **USER TASK**
+- [ ] Create `backend/` folder - **USER TASK**
+- [ ] Initialize frontend package.json - **USER TASK**
+- [ ] Initialize backend package.json - **USER TASK**
+
+---
+
+### Phase 2: Backend Migration (Hono + TypeORM)
+**Status:** 🔜 PENDING (0% complete)  
+**Priority:** CRITICAL - Must complete before frontend
+
+#### 2A. Backend Infrastructure Setup (0/6)
+- [ ] Install Hono + TypeORM + PostgreSQL dependencies
+- [ ] Create TypeORM configuration
+- [ ] Setup database connection
+- [ ] Create base Hono app with CORS middleware
+- [ ] Setup environment variables
+- [ ] Create project structure
+
+#### 2B. Database Entities Migration (0/6)
+**Prisma → TypeORM**
+- [ ] User entity (with onboarding fields)
+- [ ] Account entity (BANK_SALARY, CREDIT_CARD types)
+- [ ] Category entity (with budget tracking)
+- [ ] Transaction entity (INCOME, EXPENSE, ADJUSTMENT)
+- [ ] RecurringTransaction entity
+- [ ] Goal entity (ACTIVE, COMPLETED, ABANDONED)
+
+#### 2C. Authentication System (0/5)
+**NextAuth → JWT-based auth**
+- [ ] Create JWT utility functions (sign, verify)
+- [ ] Implement auth middleware for protected routes
+- [ ] Register endpoint (POST /auth/register)
+- [ ] Login endpoint (POST /auth/login)
+- [ ] Logout endpoint (POST /auth/logout)
+- [ ] Complete onboarding endpoint (POST /auth/complete-onboarding)
+
+#### 2D. API Routes Migration (0/22+)
+
+**Auth Routes (0/3)**
+- [ ] POST /api/auth/register
+- [ ] POST /api/auth/login
+- [ ] POST /api/auth/complete-onboarding
+
+**Accounts Routes (0/5)**
+- [ ] GET /api/accounts (list all)
+- [ ] POST /api/accounts (create)
+- [ ] GET /api/accounts/:id (get one)
+- [ ] PUT /api/accounts/:id (update)
+- [ ] DELETE /api/accounts/:id (delete)
+
+**Transactions Routes (0/5)**
+- [ ] GET /api/transactions (list with filters)
+- [ ] POST /api/transactions (create)
+- [ ] GET /api/transactions/:id
+- [ ] PUT /api/transactions/:id
+- [ ] DELETE /api/transactions/:id
+
+**Categories Routes (0/4)**
+- [ ] GET /api/categories (list all)
+- [ ] POST /api/categories (create)
+- [ ] PUT /api/categories/:id
+- [ ] DELETE /api/categories/:id
+
+**Recurring Transactions Routes (0/5)**
+- [ ] GET /api/recurring (list all)
+- [ ] POST /api/recurring (create)
+- [ ] PUT /api/recurring/:id
+- [ ] DELETE /api/recurring/:id
+- [ ] POST /api/recurring/:id/pause (toggle pause)
+
+**Goals Routes (0/5)**
+- [ ] GET /api/goals (list all)
+- [ ] POST /api/goals (create)
+- [ ] GET /api/goals/:id
+- [ ] PUT /api/goals/:id
+- [ ] DELETE /api/goals/:id
+
+**Analytics/Budget Routes (0/2)**
+- [ ] GET /api/analyze (spending analysis)
+- [ ] GET /api/budget (budget tracking)
+
+**User Routes (0/7)**
+- [ ] GET /api/user/export (export data)
+- [ ] DELETE /api/user (delete account)
+- [ ] GET /api/user/pin
+- [ ] POST /api/user/pin
+- [ ] PUT /api/user/pin
+- [ ] DELETE /api/user/pin
+- [ ] POST /api/user/pin/verify
+
+**Cron/Jobs (0/1)**
+- [ ] Setup recurring transaction processor job
+
+#### 2E. Backend Testing (0/3)
+- [ ] Test all API endpoints with Postman/Thunder Client
+- [ ] Verify database operations (CRUD)
+- [ ] Test authentication flow end-to-end
+
+---
+
+### Phase 3: Frontend Migration (TanStack Start)
+**Status:** 🔜 PENDING (0% complete)  
+**Priority:** HIGH - After backend is stable
+
+#### 3A. Frontend Infrastructure Setup (0/7)
+- [ ] Install TanStack Start + Router + Query
+- [ ] Install Vite + React plugins
+- [ ] Configure Vite (vite.config.ts)
+- [ ] Setup TanStack Router config
+- [ ] Configure Tailwind CSS
+- [ ] Setup shadcn/ui (components.json)
+- [ ] Create API client utility (fetch wrapper with auth)
+
+#### 3B. Root Layout & Router Setup (0/3)
+- [ ] Convert `layout.tsx` → `__root.tsx`
+- [ ] Create `router.tsx` configuration
+- [ ] Setup route tree generation
+
+#### 3C. Auth Pages Migration (0/2)
+- [ ] `auth/signin/page.tsx` → `auth/signin.tsx`
+- [ ] `auth/signup/page.tsx` → `auth/signup.tsx`
+
+#### 3D. Dashboard Layout Migration (0/1)
+- [ ] `dashboard/layout.tsx` → `dashboard/__layout.tsx`
+
+#### 3E. Dashboard Pages Migration (0/17)
+
+**Core Dashboard (0/1)**
+- [ ] `dashboard/page.tsx` → `dashboard/index.tsx`
+
+**Accounts Pages (0/3)**
+- [ ] `dashboard/accounts/page.tsx` → `dashboard/accounts/index.tsx`
+- [ ] `dashboard/accounts/new/page.tsx` → `dashboard/accounts/new.tsx`
+- [ ] `dashboard/accounts/[id]/page.tsx` → `dashboard/accounts/$id.tsx`
+
+**Transactions Pages (0/2)**
+- [ ] `dashboard/transactions/page.tsx` → `dashboard/transactions/index.tsx`
+- [ ] `dashboard/transactions/new/page.tsx` → `dashboard/transactions/new.tsx`
+
+**Categories Pages (0/2)**
+- [ ] `dashboard/categories/page.tsx` → `dashboard/categories/index.tsx`
+- [ ] `dashboard/categories/new/page.tsx` → `dashboard/categories/new.tsx`
+
+**Recurring Pages (0/3)**
+- [ ] `dashboard/recurring/page.tsx` → `dashboard/recurring/index.tsx`
+- [ ] `dashboard/recurring/new/page.tsx` → `dashboard/recurring/new.tsx`
+- [ ] `dashboard/recurring/[id]/page.tsx` → `dashboard/recurring/$id.tsx`
+
+**Goals Pages (0/3)**
+- [ ] `dashboard/goals/page.tsx` → `dashboard/goals/index.tsx`
+- [ ] `dashboard/goals/new/page.tsx` → `dashboard/goals/new.tsx`
+- [ ] `dashboard/goals/[id]/edit/page.tsx` → `dashboard/goals/$id/edit.tsx`
+
+**Other Pages (0/3)**
+- [ ] `dashboard/analyze/page.tsx` → `dashboard/analyze.tsx`
+- [ ] `dashboard/export/page.tsx` → `dashboard/export.tsx`
+- [ ] `dashboard/settings/page.tsx` → `dashboard/settings.tsx`
+
+#### 3F. Components Migration (0/17)
+
+**UI Components (shadcn) (0/3)**
+- [ ] Copy `ui/button.tsx` ✅
+- [ ] Copy `ui/card.tsx` ✅
+- [ ] Copy `ui/chart.tsx` ✅
+
+**Feature Components (0/14)**
+- [ ] Copy `ThemeToggle.tsx` ✅
+- [ ] Copy `accounts/AccountCard.tsx` ✅
+- [ ] Migrate `analyze/AnalyzeClient.tsx` (update API calls)
+- [ ] Migrate `dashboard/BudgetTracker.tsx` (update API calls)
+- [ ] Migrate `dashboard/DashboardNav.tsx` (update Link components)
+- [ ] Migrate `dashboard/DashboardOverview.tsx` (update API calls)
+- [ ] Migrate `dashboard/GoalsTracker.tsx` (update API calls)
+- [ ] Migrate `export/ExportClient.tsx` (update API calls)
+- [ ] Migrate `onboarding/OnboardingCheck.tsx` (update API calls)
+- [ ] Migrate `onboarding/OnboardingWizard.tsx` (update API calls)
+- [ ] Migrate `recurring/RecurringDetailsClient.tsx` (update API calls)
+- [ ] Migrate `settings/DeleteAccountModal.tsx` (update API calls)
+- [ ] Migrate `settings/SettingsClient.tsx` (update API calls)
+- [ ] Migrate `transactions/TransactionsClient.tsx` (update API calls)
+
+#### 3G. Contexts Migration (0/2)
+- [ ] Copy `AmountVisibilityContext.tsx` ✅
+- [ ] Copy `ThemeContext.tsx` ✅
+
+#### 3H. Utils & Lib Migration (0/2)
+- [ ] Copy `lib/utils.ts` ✅
+- [ ] Create API client wrapper for backend calls
+
+#### 3I. Static Assets Migration (0/3)
+- [ ] Copy `public/*` files ✅
+- [ ] Copy `globals.css` ✅
+- [ ] Copy `favicon.ico` ✅
+
+#### 3J. Frontend Testing (0/4)
+- [ ] Test all routes load correctly
+- [ ] Test authentication flow (login/signup/logout)
+- [ ] Test data fetching from backend
+- [ ] Test all user interactions and forms
+
+---
+
+### Phase 4: Integration & Deployment
+**Status:** 🔜 PENDING (0% complete)
+
+#### 4A. Configuration & Environment (0/5)
+- [ ] Setup environment variables for both apps
+- [ ] Configure CORS properly
+- [ ] Setup Docker Compose (optional)
+- [ ] Create separate Dockerfiles
+- [ ] Update .gitignore files
+
+#### 4B. Testing & QA (0/5)
+- [ ] End-to-end testing of all features
+- [ ] Cross-browser testing
+- [ ] Mobile responsiveness testing
+- [ ] Performance testing
+- [ ] Security audit (auth, CORS, SQL injection)
+
+#### 4C. Documentation (0/4)
+- [ ] Update README.md
+- [ ] Document API endpoints (Swagger/OpenAPI)
+- [ ] Document frontend routing
+- [ ] Create deployment guide
+
+#### 4D. Cleanup (0/2)
+- [ ] Review and test everything one final time
+- [ ] Delete old Next.js code - **USER WILL DO THIS** ✅
+
+---
+
+## 📊 Migration Statistics
+
+**Overall Progress:** 0% (0/150+ tasks)
+
+### By Phase:
+- **Phase 1 (Setup):** 0% - Waiting for user to create folders
+- **Phase 2 (Backend):** 0% (0/60+ tasks)
+- **Phase 3 (Frontend):** 0% (0/70+ tasks)
+- **Phase 4 (Integration):** 0% (0/16 tasks)
+
+### By Category:
+- **Pages/Routes:** 0/22 migrated
+- **API Endpoints:** 0/36 migrated
+- **Components:** 0/17 migrated
+- **Database Entities:** 0/6 migrated
+- **Configuration:** 0/15 files
+
+---
+
+## 🎯 Next Immediate Actions
+
+1. **USER:** Create `frontend/` and `backend/` folders in workspace
+2. **USER:** Initialize both projects (npm init, install base dependencies)
+3. **COPILOT:** Begin Phase 2A - Backend infrastructure setup
+4. **COPILOT:** Create TypeORM entities from Prisma schema
+5. **COPILOT:** Setup authentication system
+
+---
+
+## Previous Development Progress (Pre-Migration)
+
 ## Current Status: Feature 0A & 0B Completed + Features 1 & 2 Complete
-**Last Updated:** January 10, 2026
+**Last Updated:** January 10, 2026  
 **Overall Progress:** 20% (4/20 Features) | 100% (Foundation + UX)
 
 ---

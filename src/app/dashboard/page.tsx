@@ -109,7 +109,7 @@ export default async function DashboardPage() {
       {/* Simple Welcome Popup - Only shows on first visit */}
       {showWelcome && (
         <SimpleWelcome
-          userName={user.name || user.email?.split('@')[0]}
+          userName={user.email?.split('@')[0] || 'User'}
           onClose={markWelcomeComplete}
         />
       )}

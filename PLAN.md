@@ -1,5 +1,353 @@
 # Personal Finance Manager - Feature Plan
 
+## 🎯 PENDING FEATURES (To Implement)
+
+### **Link Transactions to Goals**
+**Status:** Planned - Not Yet Implemented  
+**Description:** Allow users to link transactions to financial goals for automatic progress tracking.
+
+**Current Behavior:**
+- Users must manually edit goals to update `currentAmount`
+- No connection between transactions and goal progress
+
+**Proposed Solution:**
+1. Add `goalId` field to Transaction model (optional)
+2. Add "Link to Goal" dropdown in transaction create/edit form
+3. When transaction is created with goalId:
+   - Automatically update goal's `currentAmount`
+   - Track which transactions contributed to goal
+4. Show transaction history per goal
+5. Support both income (adds to goal) and expense (if paying off debt goal)
+
+**Implementation Steps:**
+- [ ] Add migration: `goalId String?` to Transaction model
+- [ ] Update transaction API to handle goalId
+- [ ] Add goals dropdown to transaction form (new & edit)
+- [ ] Create logic to auto-update goal progress when linked transaction created/updated/deleted
+- [ ] Add "Linked Transactions" section in goal details page
+- [ ] Handle edge cases (deleting linked transaction should reduce goal progress)
+
+**Priority:** Medium (Nice to have for better UX)
+
+---
+
+## 🚨 MIGRATION PLAN (ON HOLD): NEXTJS TO TANSTACK + HONO
+
+**Status:** Planning Phase  
+**Target:** Split monolith into:
+1. **Frontend:** TanStack Start + React + shadcn/ui + Tailwind CSS
+2. **Backend:** Hono + PostgreSQL + TypeORM
+
+---
+
+## Migration Overview
+
+This is a complete architectural migration from Next.js full-stack to a separated frontend/backend architecture:
+- **Current:** Next.js App Router (Frontend + API Routes + Prisma + PostgreSQL)
+- **Target:** TanStack Start (Frontend) + Hono (Backend API) + TypeORM + PostgreSQL
+
+### Benefits
+- ✅ Clear separation of concerns
+- ✅ Independent scaling and deployment
+- ✅ Better type safety across client-server boundary
+- ✅ More flexible backend (Hono is lightweight and fast)
+- ✅ Modern React patterns with TanStack ecosystem
+
+---
+
+## 📦 MIGRATION INVENTORY
+
+### Frontend Pages (22 files → TanStack Routes)
+
+#### Auth Pages (2)
+- [ ] `src/app/auth/signin/page.tsx` → `frontend/src/app/auth/signin.tsx`
+- [ ] `src/app/auth/signup/page.tsx` → `frontend/src/app/auth/signup.tsx`
+
+#### Dashboard Pages (18)
+- [ ] `src/app/dashboard/page.tsx` → `frontend/src/app/dashboard/index.tsx`
+- [ ] `src/app/dashboard/accounts/page.tsx` → `frontend/src/app/dashboard/accounts/index.tsx`
+- [ ] `src/app/dashboard/accounts/new/page.tsx` → `frontend/src/app/dashboard/accounts/new.tsx`
+- [ ] `src/app/dashboard/accounts/[id]/page.tsx` → `frontend/src/app/dashboard/accounts/$id.tsx`
+- [ ] `src/app/dashboard/transactions/page.tsx` → `frontend/src/app/dashboard/transactions/index.tsx`
+- [ ] `src/app/dashboard/transactions/new/page.tsx` → `frontend/src/app/dashboard/transactions/new.tsx`
+- [ ] `src/app/dashboard/categories/page.tsx` → `frontend/src/app/dashboard/categories/index.tsx`
+- [ ] `src/app/dashboard/categories/new/page.tsx` → `frontend/src/app/dashboard/categories/new.tsx`
+- [ ] `src/app/dashboard/recurring/page.tsx` → `frontend/src/app/dashboard/recurring/index.tsx`
+- [ ] `src/app/dashboard/recurring/new/page.tsx` → `frontend/src/app/dashboard/recurring/new.tsx`
+- [ ] `src/app/dashboard/recurring/[id]/page.tsx` → `frontend/src/app/dashboard/recurring/$id.tsx`
+- [ ] `src/app/dashboard/goals/page.tsx` → `frontend/src/app/dashboard/goals/index.tsx`
+- [ ] `src/app/dashboard/goals/new/page.tsx` → `frontend/src/app/dashboard/goals/new.tsx`
+- [ ] `src/app/dashboard/goals/[id]/edit/page.tsx` → `frontend/src/app/dashboard/goals/$id/edit.tsx`
+- [ ] `src/app/dashboard/analyze/page.tsx` → `frontend/src/app/dashboard/analyze.tsx`
+- [ ] `src/app/dashboard/export/page.tsx` → `frontend/src/app/dashboard/export.tsx`
+- [ ] `src/app/dashboard/settings/page.tsx` → `frontend/src/app/dashboard/settings.tsx`
+
+#### Root Pages & Layouts (2)
+- [ ] `src/app/page.tsx` → `frontend/src/app/index.tsx`
+- [ ] `src/app/layout.tsx` → `frontend/src/app/__root.tsx`
+- [ ] `src/app/dashboard/layout.tsx` → `frontend/src/app/dashboard/__layout.tsx`
+
+---
+
+### API Routes (22+ endpoints → Hono Routes)
+
+#### Auth API (3)
+- [ ] `src/app/api/auth/[...nextauth]/route.ts` → `backend/src/routes/auth.ts` (JWT auth)
+- [ ] `src/app/api/auth/register/route.ts` → `backend/src/routes/auth.ts`
+- [ ] `src/app/api/auth/complete-onboarding/route.ts` → `backend/src/routes/auth.ts`
+
+#### Accounts API (2)
+- [ ] `src/app/api/accounts/route.ts` (GET, POST) → `backend/src/routes/accounts.ts`
+- [ ] `src/app/api/accounts/[id]/route.ts` (GET, PUT, DELETE) → `backend/src/routes/accounts.ts`
+
+#### Transactions API (2)
+- [ ] `src/app/api/transactions/route.ts` (GET, POST) → `backend/src/routes/transactions.ts`
+- [ ] `src/app/api/transactions/[id]/route.ts` (GET, PUT, DELETE) → `backend/src/routes/transactions.ts`
+
+#### Categories API (2)
+- [ ] `src/app/api/categories/route.ts` (GET, POST) → `backend/src/routes/categories.ts`
+- [ ] `src/app/api/categories/[id]/route.ts` (PUT, DELETE) → `backend/src/routes/categories.ts`
+
+#### Recurring Transactions API (2)
+- [ ] `src/app/api/recurring/route.ts` (GET, POST) → `backend/src/routes/recurring.ts`
+- [ ] `src/app/api/recurring/[id]/route.ts` (PUT, DELETE) → `backend/src/routes/recurring.ts`
+- [ ] `src/app/api/recurring/[id]/pause/route.ts` (POST) → `backend/src/routes/recurring.ts`
+
+#### Goals API (2)
+- [ ] `src/app/api/goals/route.ts` (GET, POST) → `backend/src/routes/goals.ts`
+- [ ] `src/app/api/goals/[id]/route.ts` (GET, PUT, DELETE) → `backend/src/routes/goals.ts`
+
+#### Analytics/Budget API (2)
+- [ ] `src/app/api/analyze/route.ts` (GET) → `backend/src/routes/analytics.ts`
+- [ ] `src/app/api/budget/route.ts` (GET) → `backend/src/routes/budget.ts`
+
+#### User API (5)
+- [ ] `src/app/api/user/export/route.ts` (GET) → `backend/src/routes/user.ts`
+- [ ] `src/app/api/user/delete/route.ts` (DELETE) → `backend/src/routes/user.ts`
+- [ ] `src/app/api/user/pin/route.ts` (GET, POST, PUT, DELETE) → `backend/src/routes/user.ts`
+- [ ] `src/app/api/user/pin/check/route.ts` (GET) → `backend/src/routes/user.ts`
+- [ ] `src/app/api/user/pin/verify/route.ts` (POST) → `backend/src/routes/user.ts`
+
+#### Cron/Jobs API (1)
+- [ ] `src/app/api/cron/recurring/route.ts` (GET, POST) → `backend/src/jobs/recurring.ts`
+
+---
+
+### Components (17 files - REUSABLE AS-IS! ✅)
+
+All components can be moved directly with minimal changes:
+
+#### UI Components (3) - shadcn/ui
+- [ ] `src/components/ui/button.tsx` → `frontend/src/components/ui/button.tsx` ✅
+- [ ] `src/components/ui/card.tsx` → `frontend/src/components/ui/card.tsx` ✅
+- [ ] `src/components/ui/chart.tsx` → `frontend/src/components/ui/chart.tsx` ✅
+
+#### Feature Components (14)
+- [ ] `src/components/ThemeToggle.tsx` → `frontend/src/components/ThemeToggle.tsx` ✅
+- [ ] `src/components/accounts/AccountCard.tsx` → `frontend/src/components/accounts/AccountCard.tsx` ✅
+- [ ] `src/components/analyze/AnalyzeClient.tsx` → `frontend/src/components/analyze/AnalyzeClient.tsx`
+- [ ] `src/components/dashboard/BudgetTracker.tsx` → `frontend/src/components/dashboard/BudgetTracker.tsx`
+- [ ] `src/components/dashboard/DashboardNav.tsx` → `frontend/src/components/dashboard/DashboardNav.tsx`
+- [ ] `src/components/dashboard/DashboardOverview.tsx` → `frontend/src/components/dashboard/DashboardOverview.tsx`
+- [ ] `src/components/dashboard/GoalsTracker.tsx` → `frontend/src/components/dashboard/GoalsTracker.tsx`
+- [ ] `src/components/export/ExportClient.tsx` → `frontend/src/components/export/ExportClient.tsx`
+- [ ] `src/components/onboarding/OnboardingCheck.tsx` → `frontend/src/components/onboarding/OnboardingCheck.tsx`
+- [ ] `src/components/onboarding/OnboardingWizard.tsx` → `frontend/src/components/onboarding/OnboardingWizard.tsx`
+- [ ] `src/components/recurring/RecurringDetailsClient.tsx` → `frontend/src/components/recurring/RecurringDetailsClient.tsx`
+- [ ] `src/components/settings/DeleteAccountModal.tsx` → `frontend/src/components/settings/DeleteAccountModal.tsx`
+- [ ] `src/components/settings/SettingsClient.tsx` → `frontend/src/components/settings/SettingsClient.tsx`
+- [ ] `src/components/transactions/TransactionsClient.tsx` → `frontend/src/components/transactions/TransactionsClient.tsx`
+
+---
+
+### Contexts (2 files - REUSABLE AS-IS! ✅)
+- [ ] `src/contexts/AmountVisibilityContext.tsx` → `frontend/src/contexts/AmountVisibilityContext.tsx` ✅
+- [ ] `src/contexts/ThemeContext.tsx` → `frontend/src/contexts/ThemeContext.tsx` ✅
+
+---
+
+### Lib/Utils (4 files)
+
+#### Frontend Utils (Reusable)
+- [ ] `src/lib/utils.ts` → `frontend/src/lib/utils.ts` ✅
+
+#### Backend Utils (Need Migration)
+- [ ] `src/lib/auth.ts` → `backend/src/lib/auth.ts` (NextAuth → JWT)
+- [ ] `src/lib/prisma.ts` → `backend/src/lib/database.ts` (Prisma → TypeORM)
+- [ ] `src/lib/onboarding.ts` → `backend/src/lib/onboarding.ts` (Adapt for new structure)
+
+---
+
+### Database Migration
+
+#### Prisma → TypeORM
+- [ ] `prisma/schema.prisma` → `backend/src/entities/*.ts` (TypeORM entities)
+  - [ ] User entity
+  - [ ] Account entity
+  - [ ] Category entity
+  - [ ] Transaction entity
+  - [ ] RecurringTransaction entity
+  - [ ] Goal entity
+
+#### Migrations
+- [ ] Copy existing Prisma migrations to TypeORM format
+- [ ] Test data migration path
+
+---
+
+### Configuration Files
+
+#### Frontend (TanStack Start)
+- [ ] Create `frontend/vite.config.ts`
+- [ ] Create `frontend/app.config.ts`
+- [ ] Create `frontend/tsconfig.json`
+- [ ] Migrate `tailwind.config.ts`
+- [ ] Migrate `components.json` (shadcn config)
+- [ ] Update `frontend/package.json`
+
+#### Backend (Hono)
+- [ ] Create `backend/tsconfig.json`
+- [ ] Create `backend/package.json`
+- [ ] Create `backend/src/index.ts` (Hono app entry)
+- [ ] Setup TypeORM config
+- [ ] Setup environment variables (.env)
+- [ ] Setup CORS and middleware
+
+#### Shared
+- [ ] Update root `docker-compose.yml` (if needed)
+- [ ] Create separate Dockerfiles for frontend/backend
+- [ ] Update `.gitignore` files
+
+---
+
+### Types & Interfaces
+- [ ] `src/types/index.ts` → Share between frontend/backend or duplicate
+- [ ] Create shared types package (optional)
+
+---
+
+### Static Assets
+- [ ] `public/*` → `frontend/public/*` ✅
+- [ ] `src/app/globals.css` → `frontend/src/app/globals.css` ✅
+- [ ] `src/app/favicon.ico` → `frontend/public/favicon.ico` ✅
+
+---
+
+## 🎯 MIGRATION PHASES
+
+### Phase 1: Project Setup ✅ (User will create)
+- [ ] Create `frontend/` folder
+- [ ] Create `backend/` folder
+- [ ] Initialize package.json in both
+
+### Phase 2: Backend Migration (Hono + TypeORM)
+**Priority: HIGH - Do this first for API stability**
+
+1. **Setup Backend Infrastructure**
+   - [ ] Install Hono, TypeORM, PostgreSQL dependencies
+   - [ ] Create TypeORM entities from Prisma schema
+   - [ ] Setup database connection
+   - [ ] Create base Hono app with CORS
+
+2. **Migrate Auth System**
+   - [ ] Replace NextAuth with JWT-based auth
+   - [ ] Create auth middleware
+   - [ ] Implement register/login/logout
+   - [ ] Session management
+
+3. **Migrate API Routes to Hono**
+   - [ ] Auth routes
+   - [ ] User routes
+   - [ ] Accounts routes
+   - [ ] Transactions routes
+   - [ ] Categories routes
+   - [ ] Recurring transactions routes
+   - [ ] Goals routes
+   - [ ] Analytics/Budget routes
+   - [ ] Cron/Jobs setup
+
+4. **Testing**
+   - [ ] Test all endpoints
+   - [ ] Verify database operations
+   - [ ] Check authentication flow
+
+### Phase 3: Frontend Migration (TanStack Start)
+**Priority: HIGH - After backend is stable**
+
+1. **Setup Frontend Infrastructure**
+   - [ ] Install TanStack Start, Router, React Query
+   - [ ] Setup Vite config
+   - [ ] Configure Tailwind CSS
+   - [ ] Setup shadcn/ui
+
+2. **Migrate Layouts & Root**
+   - [ ] Convert `layout.tsx` to `__root.tsx`
+   - [ ] Convert dashboard layout
+   - [ ] Setup router configuration
+
+3. **Migrate Pages**
+   - [ ] Auth pages (signin, signup)
+   - [ ] Dashboard home
+   - [ ] Accounts pages
+   - [ ] Transactions pages
+   - [ ] Categories pages
+   - [ ] Recurring pages
+   - [ ] Goals pages
+   - [ ] Analytics page
+   - [ ] Export page
+   - [ ] Settings page
+
+4. **Migrate Components**
+   - [ ] Copy all UI components
+   - [ ] Copy all feature components
+   - [ ] Update API calls to use new backend URLs
+   - [ ] Update auth logic
+
+5. **Migrate Contexts**
+   - [ ] Theme context
+   - [ ] Amount visibility context
+
+6. **Testing**
+   - [ ] Test all routes
+   - [ ] Test authentication
+   - [ ] Test data fetching
+   - [ ] Test user flows
+
+### Phase 4: Integration & Cleanup
+- [ ] Environment variables setup
+- [ ] Docker setup for both apps
+- [ ] Production build testing
+- [ ] Documentation updates
+- [ ] Delete old Next.js code ✅ (User will do this)
+
+---
+
+## 📊 MIGRATION METRICS
+
+**Total Items to Migrate:**
+- Pages/Routes: 22
+- API Endpoints: 22+
+- Components: 17 (mostly reusable ✅)
+- Contexts: 2 (reusable ✅)
+- Database Entities: 6
+- Config Files: ~10
+
+**Estimated Complexity:**
+- Backend: HIGH (Auth + TypeORM setup)
+- Frontend: MEDIUM (TanStack routing patterns)
+- Components: LOW (mostly copy-paste ✅)
+
+**Estimated Timeline:**
+- Phase 1: 1 hour (setup)
+- Phase 2: 8-12 hours (backend)
+- Phase 3: 6-10 hours (frontend)
+- Phase 4: 2-4 hours (integration)
+- **Total: 17-27 hours**
+
+---
+
+# Original Feature Plan (On Hold During Migration)
+
 ## Overview
 Comprehensive roadmap for Personal Finance Manager application with 20 planned features, prioritized by impact and implementation order.
 
