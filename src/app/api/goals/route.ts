@@ -63,10 +63,35 @@ export async function POST(req: NextRequest) {
     const { categoryIds, ...goalData } = body;
     const validatedData = CreateGoalSchema.parse(goalData);
 
+    // Normalize the goal title
+    const normalizedTitle = validatedData.title
+      .trim()
+      .replace(/[^a-zA-Z0-9\s\-_]/g, ' ')
+      .replace(/[\s\-_]+/g, ' ')
+      .trim()
+
+    // Check if goal with this title already exists for this user (case-insensitive)
+    const existing = await prisma.goal.findFirst({
+      where: {
+        userId: session.user.id,
+        title: {
+          equals: normalizedTitle,
+          mode: 'insensitive',
+        },
+      },
+    })
+
+    if (existing) {
+      return NextResponse.json(
+        { error: 'Goal with this title already exists' },
+        { status: 400 }
+      )
+    }
+
     const goal = await prisma.goal.create({
       data: {
         userId: session.user.id,
-        title: validatedData.title,
+        title: normalizedTitle,
         description: validatedData.description,
         category: validatedData.category,
         targetAmount: validatedData.targetAmount,

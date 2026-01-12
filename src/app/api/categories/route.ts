@@ -36,19 +36,31 @@ export async function POST(req: NextRequest) {
     const body = await req.json()
     const { name, monthlyBudget, color, goalId } = body
 
-    if (!name) {
+    if (!name || !name.trim()) {
       return NextResponse.json(
         { error: 'Category name is required' },
         { status: 400 }
       )
     }
 
-    // Check if category with this name already exists for this user
-    const existing = await prisma.category.findUnique({
+    // Normalize the name:
+    // 1. Trim whitespace
+    // 2. Replace special characters (except alphanumeric, space, hyphen, underscore) with space
+    // 3. Collapse multiple spaces/hyphens/underscores into single space
+    // 4. Trim again
+    const normalizedName = name
+      .trim()
+      .replace(/[^a-zA-Z0-9\s\-_]/g, ' ')  // Replace special chars with space
+      .replace(/[\s\-_]+/g, ' ')            // Collapse multiple spaces/hyphens/underscores
+      .trim()
+
+    // Check if category with this name already exists for this user (case-insensitive)
+    const existing = await prisma.category.findFirst({
       where: {
-        userId_name: {
-          userId: session.user.id,
-          name,
+        userId: session.user.id,
+        name: {
+          equals: normalizedName,
+          mode: 'insensitive',
         },
       },
     })
@@ -66,7 +78,7 @@ export async function POST(req: NextRequest) {
     const category = await prisma.category.create({
       data: {
         userId: session.user.id,
-        name,
+        name: normalizedName,
         monthlyBudget: monthlyBudget ? parseFloat(monthlyBudget) : null,
         color: color || '#3B82F6', // Default blue
         goalId: validGoalId,

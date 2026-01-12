@@ -4,9 +4,10 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { User, Download, Trash2, Shield, Database, Calendar, Info, FileSpreadsheet, DollarSign } from 'lucide-react'
+import { User, Download, Trash2, Shield, Database, Calendar, Info, FileSpreadsheet, DollarSign, Palette, Check } from 'lucide-react'
 import DeleteAccountModal from './DeleteAccountModal'
 import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
+import { useTheme } from '@/contexts/ThemeContext'
 
 interface SettingsClientProps {
   user: {
@@ -16,6 +17,8 @@ interface SettingsClientProps {
     updatedAt: string
     pin: string | null
     currency: string
+    theme: string
+    accentColor: string
   }
   stats: {
     accounts: number
@@ -28,6 +31,7 @@ interface SettingsClientProps {
 export default function SettingsClient({ user, stats }: SettingsClientProps) {
   const router = useRouter()
   const { setCurrency } = useAmountVisibility()
+  const themeContext = useTheme()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [exportLoading, setExportLoading] = useState(false)
   const [showPinModal, setShowPinModal] = useState(false)
@@ -35,6 +39,23 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
   const [pinLoading, setPinLoading] = useState(false)
   const [selectedCurrency, setSelectedCurrency] = useState(user.currency || 'INR')
   const [currencyLoading, setCurrencyLoading] = useState(false)
+  const [customAccentInput, setCustomAccentInput] = useState(user.accentColor || '#8b5cf6')
+
+  const { theme, accentColor, setThemePreset, setAccentColor } = themeContext
+
+  useEffect(() => {
+    // Sync custom accent input with actual accent color
+    setCustomAccentInput(accentColor)
+  }, [accentColor])
+
+  const colorThemes = [
+    { id: 'violet', name: 'Violet', preview: '#8b5cf6' },
+    { id: 'rose', name: 'Rose', preview: '#f43f5e' },
+    { id: 'blue', name: 'Blue', preview: '#0ea5e9' },
+    { id: 'green', name: 'Green', preview: '#10b981' },
+    { id: 'orange', name: 'Orange', preview: '#f97316' },
+    { id: 'zinc', name: 'Zinc', preview: '#71717a' },
+  ]
 
   const handleExportData = async () => {
     setExportLoading(true)
@@ -246,6 +267,46 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
                   <option value="USD" className="bg-card text-foreground">$ US Dollar (USD)</option>
                 </select>
               </div>
+            </div>
+          </div>
+        </div>
+      </div>
+
+      {/* Appearance Settings */}
+      <div className="bg-card rounded-lg shadow">
+        <div className="p-6 border-b border-border">
+          <div className="flex items-center">
+            <div className="h-12 w-12 bg-purple-100 dark:bg-purple-900/20 rounded-full flex items-center justify-center">
+              <Palette className="h-6 w-6 text-purple-600 dark:text-purple-400" />
+            </div>
+            <div className="ml-4">
+              <h2 className="text-xl font-semibold text-foreground">Appearance</h2>
+              <p className="text-sm text-muted-foreground">Customize the look and feel of your dashboard</p>
+            </div>
+          </div>
+        </div>
+        <div className="p-6">
+          <div className="flex items-center justify-between">
+            <div className="flex-1">
+              <label className="block text-sm font-medium text-foreground mb-1">
+                Color Theme
+              </label>
+              <p className="text-sm text-muted-foreground">
+                Choose a color theme for your dashboard. Toggle dark/light mode using the header icon.
+              </p>
+            </div>
+            <div className="flex gap-2 ml-4">
+              <select
+                value={theme === 'dark' || theme === 'light' ? 'violet' : theme}
+                onChange={(e) => setThemePreset(e.target.value as any)}
+                className="px-3 py-2 border border-border rounded-md bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+              >
+                {colorThemes.map((t) => (
+                  <option key={t.id} value={t.id} className="bg-card text-foreground">
+                    {t.name}
+                  </option>
+                ))}
+              </select>
             </div>
           </div>
         </div>

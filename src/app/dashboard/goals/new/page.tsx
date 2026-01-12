@@ -246,8 +246,8 @@ export default function CreateGoalPage() {
         </div>
 
         {error && (
-          <div className="bg-destructive/10 border border-destructive rounded-lg p-4">
-            <p className="text-sm text-destructive">{error}</p>
+          <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg font-medium">
+            ⚠️ {error}
           </div>
         )}
 

@@ -7,6 +7,7 @@ import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { Account, Category } from '@prisma/client'
 import { toast } from 'sonner'
+import CategorySelector from '@/components/categories/CategorySelector'
 
 export default function NewTransactionPage() {
   const router = useRouter()
@@ -123,8 +124,8 @@ export default function NewTransactionPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-card border border-border text-muted-foreground px-4 py-3 rounded">
-              {error}
+            <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg font-medium">
+              ⚠️ {error}
             </div>
           )}
 
@@ -218,30 +219,14 @@ export default function NewTransactionPage() {
           </div>
 
           <div>
-            <label htmlFor="categoryId" className="block text-sm font-medium text-foreground">
+            <label htmlFor="categoryId" className="block text-sm font-medium text-foreground mb-1">
               Category (optional)
             </label>
-            <select
-              id="categoryId"
+            <CategorySelector
               value={categoryId}
-              onChange={(e) => setCategoryId(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm bg-card text-foreground focus:outline-none focus:ring-primary focus:border-blue-500"
-            >
-              <option value="" className="bg-card text-foreground">No category</option>
-              {categories.map((category) => (
-                <option key={category.id} value={category.id} className="bg-card text-foreground">
-                  {category.name}
-                </option>
-              ))}
-            </select>
-            {categories.length === 0 && (
-              <p className="mt-1 text-sm text-muted-foreground">
-                <Link href="/dashboard/categories" className="text-blue-600 hover:underline">
-                  Create categories
-                </Link>{' '}
-                to organize your transactions
-              </p>
-            )}
+              onChange={setCategoryId}
+              placeholder="No category"
+            />
           </div>
 
           <div>

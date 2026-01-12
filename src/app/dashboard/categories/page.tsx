@@ -2,8 +2,9 @@
 
 import { useState, FormEvent, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
+import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { Plus, Trash2 } from 'lucide-react'
+import { Plus, Trash2, Edit } from 'lucide-react'
 import { Category } from '@prisma/client'
 import { toast } from 'sonner'
 
@@ -306,12 +307,23 @@ export default function CategoriesPage() {
             >
               <div className="flex justify-between items-start mb-2">
                 <h3 className="font-semibold text-foreground">{category.name}</h3>
-                <button
-                  onClick={() => deleteCategory(category.id)}
-                  className="text-red-600 hover:text-red-900"
-                >
-                  <Trash2 className="h-4 w-4" />
-                </button>
+                <div className="flex gap-2">
+                  <Link href={`/dashboard/categories/${category.id}/edit`}>
+                    <button
+                      className="text-blue-600 hover:text-blue-900 dark:text-blue-400 dark:hover:text-blue-300"
+                      title="Edit category"
+                    >
+                      <Edit className="h-4 w-4" />
+                    </button>
+                  </Link>
+                  <button
+                    onClick={() => deleteCategory(category.id)}
+                    className="text-red-600 hover:text-red-900 dark:text-red-400 dark:hover:text-red-300"
+                    title="Delete category"
+                  >
+                    <Trash2 className="h-4 w-4" />
+                  </button>
+                </div>
               </div>
               {category.monthlyBudget && (
                 <p className="text-sm text-muted-foreground">

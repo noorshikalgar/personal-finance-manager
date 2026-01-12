@@ -34,12 +34,48 @@ export async function POST(req: NextRequest) {
     }
 
     const body = await req.json()
-    const { name, type, monthlyIncome, currentBalance, startDate, totalLimit, availableLimit, billingCycleStart, dueDate } = body
+    const { name, type, monthlyIncome, currentBalance, startDate, totalLimit, availableLimit, billingCycleStart, dueDate, createRecurring, recurringNote, recurringFirstDate } = body
 
     // Validate required fields
-    if (!name || !type) {
+    if (!name || !name.trim()) {
       return NextResponse.json(
-        { error: 'Name and type are required' },
+        { error: 'Account name is required' },
+        { status: 400 }
+      )
+    }
+
+    if (!type) {
+      return NextResponse.json(
+        { error: 'Account type is required' },
+        { status: 400 }
+      )
+    }
+
+    // Normalize the account name:
+    // 1. Trim whitespace
+    // 2. Replace special characters (except alphanumeric, space, hyphen, underscore) with space
+    // 3. Collapse multiple spaces/hyphens/underscores into single space
+    // 4. Trim again
+    const normalizedName = name
+      .trim()
+      .replace(/[^a-zA-Z0-9\s\-_]/g, ' ')
+      .replace(/[\s\-_]+/g, ' ')
+      .trim()
+
+    // Check if account with this name already exists for this user (case-insensitive)
+    const existing = await prisma.account.findFirst({
+      where: {
+        userId: session.user.id,
+        name: {
+          equals: normalizedName,
+          mode: 'insensitive',
+        },
+      },
+    })
+
+    if (existing) {
+      return NextResponse.json(
+        { error: 'Account with this name already exists' },
         { status: 400 }
       )
     }
@@ -64,7 +100,7 @@ export async function POST(req: NextRequest) {
     const account = await prisma.account.create({
       data: {
         userId: session.user.id,
-        name,
+        name: normalizedName,
         type,
         monthlyIncome: monthlyIncome ? parseFloat(monthlyIncome) : null,
         currentBalance: currentBalance ? parseFloat(currentBalance) : 0,
@@ -75,6 +111,31 @@ export async function POST(req: NextRequest) {
         dueDate,
       },
     })
+
+    // Create recurring transaction if requested and monthlyIncome exists
+    if (createRecurring && monthlyIncome && parseFloat(monthlyIncome) > 0) {
+      try {
+        const firstDate = recurringFirstDate ? new Date(recurringFirstDate) : new Date(new Date().setMonth(new Date().getMonth() + 1))
+        const dayOfMonth = firstDate.getDate()
+        
+        await prisma.recurringTransaction.create({
+          data: {
+            userId: session.user.id,
+            accountId: account.id,
+            type: 'INCOME',
+            amount: parseFloat(monthlyIncome),
+            dayOfMonth: dayOfMonth,
+            startDate: firstDate,
+            note: recurringNote || 'Monthly Salary',
+            paused: false,
+            linkedToAccountIncome: true,  // Mark as linked to account
+          },
+        })
+      } catch (recurringError) {
+        console.error('Error creating recurring transaction:', recurringError)
+        // Don't fail account creation if recurring fails - graceful degradation
+      }
+    }
 
     return NextResponse.json(account, { status: 201 })
   } catch (error) {

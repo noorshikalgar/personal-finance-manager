@@ -15,7 +15,7 @@ export async function PUT(
 
     const { id } = await params
     const body = await req.json()
-    const { monthlyBudget, color, name } = body
+    const { monthlyBudget, color, name, goalId } = body
 
     // Verify ownership
     const category = await prisma.category.findFirst({
@@ -32,12 +32,44 @@ export async function PUT(
       )
     }
 
+    // Normalize name if provided
+    let normalizedName = category.name // Keep existing name if not provided
+    if (name && name.trim()) {
+      normalizedName = name
+        .trim()
+        .replace(/[^a-zA-Z0-9\s\-_]/g, ' ')
+        .replace(/[\s\-_]+/g, ' ')
+        .trim()
+
+      // Check if another category with this name exists (case-insensitive)
+      const duplicate = await prisma.category.findFirst({
+        where: {
+          userId: session.user.id,
+          name: {
+            equals: normalizedName,
+            mode: 'insensitive',
+          },
+          id: {
+            not: id, // Exclude current category
+          },
+        },
+      })
+
+      if (duplicate) {
+        return NextResponse.json(
+          { error: 'Category with this name already exists' },
+          { status: 400 }
+        )
+      }
+    }
+
     const updated = await prisma.category.update({
       where: { id },
       data: {
-        ...(name && { name }),
-        ...(monthlyBudget !== undefined && { monthlyBudget: monthlyBudget ? parseFloat(monthlyBudget) : null }),
-        ...(color && { color }),
+        name: normalizedName,
+        monthlyBudget: monthlyBudget !== undefined ? (monthlyBudget ? parseFloat(monthlyBudget) : null) : undefined,
+        color: color || undefined,
+        goalId: goalId !== undefined ? (goalId && goalId.trim() !== '' ? goalId : null) : undefined,
       },
     })
 

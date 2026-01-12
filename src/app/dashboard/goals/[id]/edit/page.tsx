@@ -181,64 +181,61 @@ export default function EditGoalPage() {
   }
 
   return (
-    <div className="space-y-6">
+    <div className="max-w-4xl mx-auto space-y-6">
       <div className="flex items-center gap-2">
         <Link href="/dashboard/goals">
           <Button variant="outline" size="icon">
             <ArrowLeft className="w-4 h-4" />
           </Button>
         </Link>
-        <h1 className="text-3xl font-bold text-foreground">Edit Goal</h1>
+        <h1 className="text-2xl font-bold text-foreground">Edit Goal</h1>
       </div>
 
-      <form onSubmit={handleSubmit} className="space-y-6">
-        <div className="bg-card border border-border rounded-lg p-6 space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Goal Title</label>
-            <input
-              type="text"
-              name="title"
-              value={formData.title}
-              onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
+      <form onSubmit={handleSubmit} className="space-y-5">
+        {error && (
+          <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg font-medium">
+            ⚠️ {error}
           </div>
+        )}
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Description</label>
-            <textarea
-              name="description"
-              value={formData.description || ''}
-              onChange={handleChange}
-              rows={3}
-              className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
-            />
-          </div>
+        {/* Basic Info Card */}
+        <div className="bg-card border border-border rounded-lg p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Basic Information</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-foreground mb-1.5">Goal Title</label>
+              <input
+                type="text"
+                name="title"
+                value={formData.title}
+                onChange={handleChange}
+                required
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
 
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-3">Category</label>
-            <div className="grid grid-cols-3 gap-2">
-              {GOAL_CATEGORIES.map(cat => (
-                <button
-                  key={cat.value}
-                  type="button"
-                  onClick={() => handleCategorySelect(cat.value)}
-                  className={`p-3 rounded-lg border text-sm font-medium transition-all ${
-                    formData.category === cat.value
-                      ? 'border-primary bg-primary/10 text-primary'
-                      : 'border-border bg-background text-foreground hover:bg-muted'
-                  }`}
-                >
-                  <div className="text-xl">{cat.icon}</div>
-                  <div className="mt-1">{cat.label}</div>
-                </button>
-              ))}
+            <div className="md:col-span-2">
+              <label className="block text-sm font-medium text-foreground mb-1.5">Description (Optional)</label>
+              <textarea
+                name="description"
+                value={formData.description || ''}
+                onChange={handleChange}
+                rows={2}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary resize-none"
+                placeholder="Add details about your goal..."
+              />
             </div>
           </div>
+        </div>
 
-          <div className="grid grid-cols-2 gap-4">
+        {/* Financial Details Card */}
+        <div className="bg-card border border-border rounded-lg p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Financial Details</h2>
+          
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Target Amount ($)</label>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Target Amount</label>
               <input
                 type="number"
                 name="targetAmount"
@@ -246,11 +243,13 @@ export default function EditGoalPage() {
                 onChange={handleChange}
                 min="0"
                 step="0.01"
-                className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                required
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
             </div>
+            
             <div>
-              <label className="block text-sm font-medium text-foreground mb-2">Current Amount ($)</label>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Current Amount</label>
               <input
                 type="number"
                 name="currentAmount"
@@ -258,62 +257,58 @@ export default function EditGoalPage() {
                 onChange={handleChange}
                 min="0"
                 step="0.01"
-                className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                required
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
               />
+            </div>
+
+            <div>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Deadline (Optional)</label>
+              <input
+                type="date"
+                name="deadline"
+                value={formData.deadline}
+                onChange={handleChange}
+                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              />
+            </div>
+          </div>
+        </div>
+
+        {/* Category & Status Card */}
+        <div className="bg-card border border-border rounded-lg p-5 space-y-4">
+          <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Category & Status</h2>
+          
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-2">Goal Category</label>
+            <div className="grid grid-cols-3 sm:grid-cols-5 md:grid-cols-9 gap-2">
+              {GOAL_CATEGORIES.map(cat => (
+                <button
+                  key={cat.value}
+                  type="button"
+                  onClick={() => handleCategorySelect(cat.value)}
+                  className={`p-2 rounded-lg border text-xs font-medium transition-all flex flex-col items-center gap-1 ${
+                    formData.category === cat.value
+                      ? 'border-primary bg-primary/10 text-primary ring-2 ring-primary/20'
+                      : 'border-border bg-background text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <div className="text-lg">{cat.icon}</div>
+                  <div className="text-[10px] leading-tight text-center">{cat.label}</div>
+                </button>
+              ))}
             </div>
           </div>
 
           <div>
-            <label className="block text-sm font-medium text-foreground mb-2">Deadline</label>
-            <input
-              type="date"
-              name="deadline"
-              value={formData.deadline}
-              onChange={handleChange}
-              className="w-full px-4 py-2 rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-            />
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-3">Link Categories (Optional)</label>
-            <p className="text-sm text-muted-foreground mb-3">
-              Select categories to track towards this goal. Spending/income in these categories will update goal progress.
-            </p>
-            {categories.length === 0 ? (
-              <p className="text-sm text-muted-foreground italic">No categories available. Create categories first.</p>
-            ) : (
-              <div className="grid grid-cols-2 sm:grid-cols-3 gap-2 max-h-48 overflow-y-auto p-2 border border-border rounded-lg">
-                {categories.map(cat => (
-                  <button
-                    key={cat.id}
-                    type="button"
-                    onClick={() => toggleCategory(cat.id)}
-                    className={`p-2 rounded-lg border text-sm font-medium transition-all flex items-center gap-2 ${
-                      selectedCategories.includes(cat.id)
-                        ? 'border-primary bg-primary/10 text-primary'
-                        : 'border-border bg-background text-foreground hover:bg-muted'
-                    }`}
-                  >
-                    <div 
-                      className="w-3 h-3 rounded-full" 
-                      style={{ backgroundColor: cat.color || '#6B7280' }}
-                    />
-                    <span className="truncate">{cat.name}</span>
-                  </button>
-                ))}
-              </div>
-            )}
-          </div>
-
-          <div>
-            <label className="block text-sm font-medium text-foreground mb-3">Status</label>
-            <div className="flex gap-2">
+            <label className="block text-sm font-medium text-foreground mb-2">Status</label>
+            <div className="flex flex-wrap gap-2">
               {['ACTIVE', 'COMPLETED', 'ABANDONED'].map(status => (
                 <button
                   key={status}
                   type="button"
                   onClick={() => handleStatusChange(status)}
-                  className={`px-4 py-2 rounded-lg font-medium transition-all ${
+                  className={`px-3 py-1.5 text-xs rounded-full transition-all ${
                     formData.status === status
                       ? 'bg-primary text-primary-foreground'
                       : 'bg-muted text-foreground hover:bg-muted/80'
@@ -326,19 +321,51 @@ export default function EditGoalPage() {
           </div>
         </div>
 
-        {error && (
-          <div className="bg-destructive/10 border border-destructive rounded-lg p-4">
-            <p className="text-sm text-destructive">{error}</p>
+        {/* Linked Categories Card */}
+        <div className="bg-card border border-border rounded-lg p-5 space-y-4">
+          <div>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Linked Categories</h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Link categories to auto-track spending/income towards this goal
+            </p>
           </div>
-        )}
+          
+          {categories.length === 0 ? (
+            <div className="text-center py-6 text-sm text-muted-foreground">
+              No categories available. Create categories first.
+            </div>
+          ) : (
+            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
+              {categories.map(cat => (
+                <button
+                  key={cat.id}
+                  type="button"
+                  onClick={() => toggleCategory(cat.id)}
+                  className={`p-2 rounded-lg border text-xs font-medium transition-all flex items-center gap-2 ${
+                    selectedCategories.includes(cat.id)
+                      ? 'border-green-500 bg-green-500/10 text-green-700 dark:text-green-400'
+                      : 'border-border bg-background text-foreground hover:bg-muted'
+                  }`}
+                >
+                  <div 
+                    className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
+                    style={{ backgroundColor: cat.color || '#6B7280' }}
+                  />
+                  <span className="truncate">{cat.name}</span>
+                </button>
+              ))}
+            </div>
+          )}
+        </div>
 
-        <div className="flex gap-3">
-          <Button type="submit" disabled={saving}>
+        {/* Action Buttons */}
+        <div className="flex gap-3 pt-2">
+          <Button type="submit" disabled={saving} size="default">
             {saving && <Loader2 className="w-4 h-4 mr-2 animate-spin" />}
             Save Changes
           </Button>
           <Link href="/dashboard/goals">
-            <Button variant="outline">Cancel</Button>
+            <Button type="button" variant="outline">Cancel</Button>
           </Link>
         </div>
       </form>

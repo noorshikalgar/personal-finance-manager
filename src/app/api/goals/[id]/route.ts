@@ -39,7 +39,39 @@ export async function PUT(
     const validatedData = UpdateGoalSchema.parse(goalUpdateData);
 
     const updateData: any = {};
-    if (validatedData.title !== undefined) updateData.title = validatedData.title;
+    
+    // Normalize title if provided
+    if (validatedData.title !== undefined) {
+      const normalizedTitle = validatedData.title
+        .trim()
+        .replace(/[^a-zA-Z0-9\s\-_]/g, ' ')
+        .replace(/[\s\-_]+/g, ' ')
+        .trim()
+
+      // Check if another goal with this title exists (case-insensitive)
+      const duplicate = await prisma.goal.findFirst({
+        where: {
+          userId: session.user.id,
+          title: {
+            equals: normalizedTitle,
+            mode: 'insensitive',
+          },
+          id: {
+            not: id, // Exclude current goal
+          },
+        },
+      })
+
+      if (duplicate) {
+        return NextResponse.json(
+          { error: 'Goal with this title already exists' },
+          { status: 400 }
+        )
+      }
+
+      updateData.title = normalizedTitle;
+    }
+    
     if (validatedData.description !== undefined) updateData.description = validatedData.description;
     if (validatedData.category !== undefined) updateData.category = validatedData.category;
     if (validatedData.targetAmount !== undefined) updateData.targetAmount = validatedData.targetAmount;

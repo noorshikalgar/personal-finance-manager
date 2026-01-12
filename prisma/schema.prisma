@@ -20,6 +20,10 @@ model User {
   pin           String?   // Optional PIN to hide amounts on dashboard
   currency      String    @default("INR") // User's preferred currency (INR or USD)
   
+  // Theme preferences
+  theme         String    @default("dark") // Theme preset: light, dark, violet, rose, blue, green, orange
+  accentColor   String    @default("#8b5cf6") // Custom accent color for primary elements
+  
   // Onboarding tracking
   onboardingCompleted Boolean @default(false) // Final completion flag
   onboardingCurrentStep Int @default(0) // 0=welcome, 1=add-account, 2=add-transaction, 3=add-category, 4=set-budget, 5=done
@@ -164,6 +168,7 @@ model RecurringTransaction {
   
   paused      Boolean  @default(false)
   lastRunAt   DateTime? // Last time transaction was created
+  linkedToAccountIncome Boolean @default(false) // True if auto-created from account monthlyIncome
   
   createdAt   DateTime @default(now())
   updatedAt   DateTime @updatedAt

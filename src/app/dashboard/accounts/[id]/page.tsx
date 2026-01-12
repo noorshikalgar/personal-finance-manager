@@ -3,7 +3,7 @@ import { prisma } from '@/lib/prisma'
 import { redirect, notFound } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, CreditCard, Wallet, TrendingUp, TrendingDown } from 'lucide-react'
+import { ArrowLeft, CreditCard, Wallet, TrendingUp, TrendingDown, Edit } from 'lucide-react'
 
 interface PageProps {
   params: Promise<{ id: string }>
@@ -28,6 +28,12 @@ export default async function AccountDetailPage({ params }: PageProps) {
         take: 50,
         include: {
           category: true,
+        },
+      },
+      recurringTransactions: {
+        where: {
+          linkedToAccountIncome: true,
+          paused: false,
         },
       },
     },
@@ -80,14 +86,67 @@ export default async function AccountDetailPage({ params }: PageProps) {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center gap-4">
-        <Link href="/dashboard/accounts">
-          <Button variant="outline" size="icon">
-            <ArrowLeft className="h-4 w-4" />
+      <div className="flex items-center justify-between">
+        <div className="flex items-center gap-4">
+          <Link href="/dashboard/accounts">
+            <Button variant="outline" size="icon">
+              <ArrowLeft className="h-4 w-4" />
+            </Button>
+          </Link>
+          <h1 className="text-3xl font-bold text-foreground">{account.name}</h1>
+        </div>
+        <Link href={`/dashboard/accounts/${account.id}/edit`}>
+          <Button variant="outline" size="sm">
+            <Edit className="mr-2 h-4 w-4" />
+            Edit Account
           </Button>
         </Link>
-        <h1 className="text-3xl font-bold text-foreground">{account.name}</h1>
       </div>
+
+      {/* Recurring Income Status Warnings */}
+      {!isCreditCard && account.monthlyIncome && account.monthlyIncome > 0 && (
+        <>
+          {accountRaw.recurringTransactions && accountRaw.recurringTransactions.length > 0 ? (
+            <div className="bg-blue-50 dark:bg-blue-900/20 border-2 border-blue-500 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">ℹ️</span>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-blue-800 dark:text-blue-200 mb-1">
+                    Recurring Income Transaction Active
+                  </h4>
+                  <p className="text-sm text-blue-700 dark:text-blue-300 mb-2">
+                    This account has an active recurring transaction linked to the monthly income (${formatCurrency(account.monthlyIncome)}).
+                  </p>
+                  <Link href="/dashboard/recurring">
+                    <Button size="sm" variant="outline" className="text-xs">
+                      View/Edit Recurring Transaction →
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          ) : (
+            <div className="bg-yellow-50 dark:bg-yellow-900/20 border-2 border-yellow-500 rounded-lg p-4">
+              <div className="flex items-start gap-3">
+                <span className="text-2xl">⚠️</span>
+                <div className="flex-1">
+                  <h4 className="font-semibold text-yellow-800 dark:text-yellow-200 mb-1">
+                    No Recurring Transaction Found
+                  </h4>
+                  <p className="text-sm text-yellow-700 dark:text-yellow-300 mb-2">
+                    Monthly income is set to {formatCurrency(account.monthlyIncome)}, but no active recurring transaction exists. Future income won't be automatically added.
+                  </p>
+                  <Link href={`/dashboard/recurring/new?accountId=${account.id}&amount=${account.monthlyIncome}&accountName=${encodeURIComponent(account.name)}`}>
+                    <Button size="sm" variant="outline" className="text-xs">
+                      Create Recurring Transaction →
+                    </Button>
+                  </Link>
+                </div>
+              </div>
+            </div>
+          )}
+        </>
+      )}
 
       {/* Account Summary Card */}
       <div className="bg-card rounded-lg shadow p-6">

@@ -19,7 +19,16 @@ export default function NewAccountPage() {
   // Bank/Salary fields
   const [monthlyIncome, setMonthlyIncome] = useState('')
   const [currentBalance, setCurrentBalance] = useState('')
-  const [importPast, setImportPast] = useState<boolean | null>(null)
+  
+  // Recurring Income fields
+  const [createRecurring, setCreateRecurring] = useState(false)
+  const [recurringNote, setRecurringNote] = useState('Monthly Salary')
+  const [recurringFirstDate, setRecurringFirstDate] = useState(() => {
+    const nextMonth = new Date()
+    nextMonth.setMonth(nextMonth.getMonth() + 1)
+    nextMonth.setDate(1)
+    return nextMonth.toISOString().split('T')[0]
+  })
   
   // Credit Card fields
   const [totalLimit, setTotalLimit] = useState('')
@@ -47,6 +56,13 @@ export default function NewAccountPage() {
         data.currentBalance = currentBalance
         data.monthlyIncome = monthlyIncome || null
         data.startDate = new Date().toISOString()
+        
+        // Add recurring transaction data if enabled
+        if (monthlyIncome && parseFloat(monthlyIncome) > 0 && createRecurring) {
+          data.createRecurring = true
+          data.recurringNote = recurringNote || 'Monthly Salary'
+          data.recurringFirstDate = recurringFirstDate
+        }
       } else {
         if (!totalLimit || !availableLimit) {
           setError('Total limit and available limit are required')
@@ -96,8 +112,8 @@ export default function NewAccountPage() {
 
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-card border border-border text-muted-foreground px-4 py-3 rounded">
-              {error}
+            <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg font-medium">
+              ⚠️ {error}
             </div>
           )}
 
@@ -179,43 +195,70 @@ export default function NewAccountPage() {
                   id="monthlyIncome"
                   step="0.01"
                   value={monthlyIncome}
-                  onChange={(e) => setMonthlyIncome(e.target.value)}
+                  onChange={(e) => {
+                    setMonthlyIncome(e.target.value)
+                    // Auto-check recurring if income is entered
+                    if (e.target.value && parseFloat(e.target.value) > 0) {
+                      setCreateRecurring(true)
+                    } else {
+                      setCreateRecurring(false)
+                    }
+                  }}
                   placeholder="0.00"
-                  className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-blue-500"
+                  className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-blue-500 bg-card text-foreground"
                 />
               </div>
 
-              <div className="bg-card border border-border rounded-md p-4">
-                <p className="text-sm font-medium text-foreground mb-2">
-                  Do you want to import past transactions?
-                </p>
-                <div className="space-y-2">
-                  <label className="flex items-center">
+              {/* Recurring Income Transaction */}
+              {monthlyIncome && parseFloat(monthlyIncome) > 0 && (
+                <div className="border-2 border-primary/30 rounded-lg p-4 bg-primary/5 space-y-4">
+                  <div className="flex items-center gap-3">
                     <input
-                      type="radio"
-                      name="importPast"
-                      checked={importPast === true}
-                      onChange={() => setImportPast(true)}
-                      className="mr-2"
+                      type="checkbox"
+                      id="createRecurring"
+                      checked={createRecurring}
+                      onChange={(e) => setCreateRecurring(e.target.checked)}
+                      className="w-4 h-4 rounded border-border accent-primary cursor-pointer"
                     />
-                    <span className="text-sm text-foreground">
-                      Yes - I&apos;ll add them manually
-                    </span>
-                  </label>
-                  <label className="flex items-center">
-                    <input
-                      type="radio"
-                      name="importPast"
-                      checked={importPast === false}
-                      onChange={() => setImportPast(false)}
-                      className="mr-2"
-                    />
-                    <span className="text-sm text-foreground">
-                      No - Start tracking from today
-                    </span>
-                  </label>
+                    <label htmlFor="createRecurring" className="text-sm font-semibold text-foreground cursor-pointer">
+                      💰 Create recurring income transaction
+                    </label>
+                  </div>
+                  
+                  {createRecurring && (
+                    <div className="space-y-3 pl-7">
+                      <div>
+                        <label htmlFor="recurringNote" className="block text-xs font-medium text-muted-foreground mb-1">
+                          Description
+                        </label>
+                        <input
+                          type="text"
+                          id="recurringNote"
+                          value={recurringNote}
+                          onChange={(e) => setRecurringNote(e.target.value)}
+                          placeholder="e.g., Monthly Salary"
+                          className="w-full px-3 py-2 border border-border rounded-md text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                      <div>
+                        <label htmlFor="recurringFirstDate" className="block text-xs font-medium text-muted-foreground mb-1">
+                          First Payment Date
+                        </label>
+                        <input
+                          type="date"
+                          id="recurringFirstDate"
+                          value={recurringFirstDate}
+                          onChange={(e) => setRecurringFirstDate(e.target.value)}
+                          className="w-full px-3 py-2 border border-border rounded-md text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        />
+                      </div>
+                      <p className="text-xs text-muted-foreground">
+                        This will create a monthly recurring income transaction. You can edit or delete it later from the Recurring page.
+                      </p>
+                    </div>
+                  )}
                 </div>
-              </div>
+              )}
             </>
           ) : (
             <>

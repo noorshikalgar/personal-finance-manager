@@ -1,10 +1,11 @@
 'use client'
 
 import { useState, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
+import CategorySelector from '@/components/categories/CategorySelector'
 
 interface Account {
   id: string
@@ -20,10 +21,16 @@ interface Category {
 
 export default function NewRecurringPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   const [accounts, setAccounts] = useState<Account[]>([])
   const [categories, setCategories] = useState<Category[]>([])
+
+  // Get query params for pre-filling
+  const prefillAccountId = searchParams.get('accountId')
+  const prefillAmount = searchParams.get('amount')
+  const prefillAccountName = searchParams.get('accountName')
 
   const [formData, setFormData] = useState({
     note: '',
@@ -53,13 +60,25 @@ export default function NewRecurringPage() {
           const categoriesData = await categoriesRes.json()
           setCategories(categoriesData)
         }
+
+        // Pre-fill form if query params exist
+        if (prefillAccountId && prefillAmount && prefillAccountName) {
+          setFormData(prev => ({
+            ...prev,
+            accountId: prefillAccountId,
+            amount: prefillAmount,
+            type: 'INCOME',
+            note: `Monthly Income - ${prefillAccountName}`,
+            dayOfMonth: '1', // Default to 1st of month
+          }))
+        }
       } catch (err) {
         console.error('Error fetching data:', err)
       }
     }
 
     fetchData()
-  }, [])
+  }, [prefillAccountId, prefillAmount, prefillAccountName])
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault()
@@ -107,8 +126,8 @@ export default function NewRecurringPage() {
       <div className="bg-card rounded-lg shadow p-6">
         <form onSubmit={handleSubmit} className="space-y-6">
           {error && (
-            <div className="bg-destructive/10 border border-destructive/20 text-destructive px-4 py-3 rounded">
-              {error}
+            <div className="bg-red-50 dark:bg-red-900/20 border-2 border-red-500 text-red-800 dark:text-red-200 px-4 py-3 rounded-lg font-medium">
+              ⚠️ {error}
             </div>
           )}
 
@@ -203,18 +222,11 @@ export default function NewRecurringPage() {
               <label className="block text-sm font-medium text-foreground mb-2">
                 Category
               </label>
-              <select
+              <CategorySelector
                 value={formData.categoryId}
-                onChange={(e) => setFormData({ ...formData, categoryId: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
-              >
-                <option value="" className="bg-card text-foreground">Select a category (optional)</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id} className="bg-card text-foreground">
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(categoryId) => setFormData({ ...formData, categoryId })}
+                placeholder="Select a category (optional)"
+              />
             </div>
           </div>
 

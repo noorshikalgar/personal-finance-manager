@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft, Save, Pause, Play, Trash2, Calendar } from 'lucide-react'
 import type { AccountWithNumbers, CategoryWithNumbers } from '@/types'
 import Link from 'next/link'
+import CategorySelector from '@/components/categories/CategorySelector'
 
 interface RecurringWithNumbers {
   id: string
@@ -142,7 +143,13 @@ export default function RecurringDetailsClient({
   }
 
   const handleDelete = async () => {
-    if (!confirm('Are you sure you want to delete this recurring transaction?')) return
+    let confirmMessage = 'Are you sure you want to delete this recurring transaction?'
+    
+    if (recurring.linkedToAccountIncome) {
+      confirmMessage = `⚠️ WARNING: This recurring transaction is linked to your account's monthly income!\n\nAccount: ${recurring.account.name}\nMonthly Income: $${recurring.account.monthlyIncome || 0}\n\nFuture income transactions will NOT be automatically created.\n\nAre you sure you want to delete it?`
+    }
+    
+    if (!confirm(confirmMessage)) return
 
     setLoading(true)
     try {
@@ -432,20 +439,11 @@ export default function RecurringDetailsClient({
               Category
             </label>
             {isEditing ? (
-              <select
+              <CategorySelector
                 value={formData.categoryId}
-                onChange={(e) =>
-                  setFormData({ ...formData, categoryId: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground"
-              >
-                <option value="" className="bg-card text-foreground">Uncategorized</option>
-                {categories.map((category) => (
-                  <option key={category.id} value={category.id} className="bg-card text-foreground">
-                    {category.name}
-                  </option>
-                ))}
-              </select>
+                onChange={(categoryId) => setFormData({ ...formData, categoryId })}
+                placeholder="Uncategorized"
+              />
             ) : (
               <p className="text-foreground">
                 {recurring.category ? recurring.category.name : 'Uncategorized'}

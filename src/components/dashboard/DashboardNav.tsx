@@ -16,7 +16,11 @@ import {
   X,
   Eye,
   EyeOff,
-  ChevronDown
+  ChevronDown,
+  Settings,
+  Repeat,
+  FolderTree,
+  Target
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
@@ -33,10 +37,10 @@ const primaryNavItems = [
 ]
 
 const secondaryNavItems = [
-  { href: '/dashboard/categories', label: 'Categories' },
-  { href: '/dashboard/recurring', label: 'Recurring' },
+  { href: '/dashboard/categories', label: 'Categories', icon: FolderTree },
+  { href: '/dashboard/recurring', label: 'Recurring', icon: Repeat },
+  { href: '/dashboard/goals', label: 'Goals', icon: Target },
   { href: '/dashboard/export', label: 'Export', icon: FileDown },
-  { href: '/dashboard/settings', label: 'Settings' },
 ]
 
 export default function DashboardNav({ userEmail }: DashboardNavProps) {
@@ -160,6 +164,13 @@ export default function DashboardNav({ userEmail }: DashboardNavProps) {
                   <p className="text-xs text-muted-foreground uppercase tracking-wide">Signed in as</p>
                   <p className="text-sm font-medium text-card-foreground mt-1 truncate">{userEmail}</p>
                 </div>
+                <Link
+                  href="/dashboard/settings"
+                  className="flex items-center w-full px-4 py-2 text-sm text-card-foreground hover:bg-muted transition-colors"
+                >
+                  <Settings className="h-4 w-4 mr-2" />
+                  Settings
+                </Link>
                 <button
                   onClick={handleSignOut}
                   className="flex items-center w-full px-4 py-2 text-sm text-destructive hover:bg-destructive/10 transition-colors"
@@ -222,6 +233,14 @@ export default function DashboardNav({ userEmail }: DashboardNavProps) {
           <div className="border-t border-border px-3 py-3">
             <p className="text-xs text-muted-foreground uppercase tracking-wide px-1 mb-2">Account</p>
             <p className="text-sm font-medium text-card-foreground px-3 py-2 truncate">{userEmail}</p>
+            <Link
+              href="/dashboard/settings"
+              onClick={() => setMobileMenuOpen(false)}
+              className="flex items-center w-full px-3 py-2 text-sm text-card-foreground hover:bg-muted rounded-md transition-colors"
+            >
+              <Settings className="h-4 w-4 mr-2" />
+              Settings
+            </Link>
             <Button
               onClick={handleSignOut}
               variant="ghost"

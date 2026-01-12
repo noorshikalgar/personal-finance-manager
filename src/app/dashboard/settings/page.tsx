@@ -18,6 +18,8 @@ export default async function SettingsPage() {
       updatedAt: true,
       pin: true,
       currency: true,
+      theme: true,
+      accentColor: true,
     },
   })
 
