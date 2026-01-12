@@ -62,11 +62,19 @@ export default async function AccountDetailPage({ params }: PageProps) {
 
   const isCreditCard = account.type === 'CREDIT_CARD'
 
+  // Get user's currency from session/settings
+  const user = await prisma.user.findUnique({
+    where: { id: session.user.id },
+    select: { currency: true },
+  })
+  
+  const userCurrency = user?.currency || 'USD'
+
   const formatCurrency = (amount: number | null) => {
     if (amount === null) return '-'
     return new Intl.NumberFormat('en-US', {
       style: 'currency',
-      currency: 'USD',
+      currency: userCurrency,
     }).format(amount)
   }
 

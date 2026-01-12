@@ -7,6 +7,7 @@ import { Plus } from 'lucide-react'
 import DashboardOverview from '@/components/dashboard/DashboardOverview'
 import BudgetTracker from '@/components/dashboard/BudgetTracker'
 import { GoalsTracker } from '@/components/dashboard/GoalsTracker'
+import RemindersWidget from '@/components/dashboard/RemindersWidget'
 import { SimpleWelcome } from '@/components/onboarding/SimpleWelcome'
 import { markWelcomeComplete } from './actions'
 
@@ -150,6 +151,7 @@ export default async function DashboardPage() {
         />
         <BudgetTracker />
         <GoalsTracker />
+        <RemindersWidget />
       </div>
     </>
   )

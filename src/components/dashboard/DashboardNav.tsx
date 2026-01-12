@@ -20,7 +20,8 @@ import {
   Settings,
   Repeat,
   FolderTree,
-  Target
+  Target,
+  Bell
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
@@ -40,6 +41,7 @@ const secondaryNavItems = [
   { href: '/dashboard/categories', label: 'Categories', icon: FolderTree },
   { href: '/dashboard/recurring', label: 'Recurring', icon: Repeat },
   { href: '/dashboard/goals', label: 'Goals', icon: Target },
+  { href: '/dashboard/reminders', label: 'Reminders', icon: Bell },
   { href: '/dashboard/export', label: 'Export', icon: FileDown },
 ]
 

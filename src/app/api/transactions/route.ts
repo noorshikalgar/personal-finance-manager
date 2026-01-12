@@ -140,7 +140,7 @@ export async function POST(req: NextRequest) {
     const userId = session.user.id
 
     const body = await req.json()
-    const { accountId, categoryId, date, amount, type, note } = body
+    const { accountId, categoryId, reminderId, date, amount, type, note } = body
 
     if (!accountId || !date || amount === undefined || !type) {
       return NextResponse.json(
@@ -172,6 +172,7 @@ export async function POST(req: NextRequest) {
           userId,
           accountId,
           categoryId: categoryId || null,
+          reminderId: reminderId || null,
           date: new Date(date),
           amount: parseFloat(amount),
           type,

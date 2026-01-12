@@ -38,6 +38,7 @@ model User {
   categories    Category[]
   recurringTransactions RecurringTransaction[]
   goals         Goal[]
+  reminders     Reminder[]
 }
 
 // ============================================================================
@@ -98,6 +99,7 @@ model Category {
   
   transactions          Transaction[]
   recurringTransactions RecurringTransaction[]
+  reminders             Reminder[]
   
   @@unique([userId, name])
   @@index([userId])
@@ -132,6 +134,10 @@ model Transaction {
   // Link to recurring transaction if auto-generated
   recurringTransactionId String?
   recurringTransaction   RecurringTransaction? @relation(fields: [recurringTransactionId], references: [id], onDelete: SetNull)
+  
+  // Link to reminder (optional)
+  reminderId    String?
+  reminder      Reminder? @relation(fields: [reminderId], references: [id], onDelete: SetNull)
   
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
@@ -227,4 +233,85 @@ model Goal {
   @@index([userId])
   @@index([status])
   @@index([category])
+}
+
+// ============================================================================
+// REMINDERS - Track recurring expenses and maintenance tasks
+// ============================================================================
+
+enum ReminderCycle {
+  DAILY
+  WEEKLY
+  MONTHLY
+  QUARTERLY
+  HALF_YEARLY
+  YEARLY
+  CUSTOM
+}
+
+enum ReminderStatus {
+  UPCOMING
+  OVERDUE
+  COMPLETED
+  SNOOZED
+}
+
+model Reminder {
+  id              String          @id @default(cuid())
+  userId          String
+  user            User            @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  title           String
+  description     String?
+  
+  // Link to Category (optional)
+  categoryId      String?
+  category        Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  
+  // Cycle configuration
+  cycle           ReminderCycle
+  customCycleDays Int?            // For CUSTOM cycle
+  
+  // Dates
+  lastDate        DateTime?       // Last time this was completed
+  nextDate        DateTime        // Next due date
+  
+  // Expense tracking
+  isExpenseRelated Boolean        @default(false)
+  estimatedCost    Decimal?       @db.Decimal(12, 2)
+  
+  // Status
+  status          ReminderStatus  @default(UPCOMING)
+  snoozedUntil    DateTime?       // If snoozed
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  // Relations
+  transactions    Transaction[]   // Transactions linked to this reminder
+  attachments     ReminderAttachment[]
+  
+  @@index([userId])
+  @@index([status])
+  @@index([nextDate])
+  @@index([categoryId])
+}
+
+model ReminderAttachment {
+  id              String    @id @default(cuid())
+  reminderId      String
+  reminder        Reminder  @relation(fields: [reminderId], references: [id], onDelete: Cascade)
+  
+  // File metadata
+  fileName        String
+  fileType        String    // MIME type: "image/jpeg", "application/pdf", etc.
+  fileSize        Int       // Size in bytes
+  
+  // Storage info (provider-agnostic)
+  storageProvider String    @default("local")  // 'local', 's3', 'wasabi', etc.
+  storageKey      String    // UUID for local, S3 key for cloud
+  
+  uploadedAt      DateTime  @default(now())
+  
+  @@index([reminderId])
 }

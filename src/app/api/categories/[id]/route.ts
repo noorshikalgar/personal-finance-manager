@@ -2,6 +2,43 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 
+// GET a single category by ID
+export async function GET(
+  req: NextRequest,
+  { params }: { params: Promise<{ id: string }> }
+) {
+  try {
+    const session = await auth()
+    if (!session?.user?.id) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 })
+    }
+
+    const { id } = await params
+
+    const category = await prisma.category.findFirst({
+      where: {
+        id,
+        userId: session.user.id, // Ensure user owns this category
+      },
+    })
+
+    if (!category) {
+      return NextResponse.json(
+        { error: 'Category not found' },
+        { status: 404 }
+      )
+    }
+
+    return NextResponse.json(category)
+  } catch (error) {
+    console.error('Error fetching category:', error)
+    return NextResponse.json(
+      { error: 'Internal server error' },
+      { status: 500 }
+    )
+  }
+}
+
 // UPDATE category budget
 export async function PUT(
   req: NextRequest,
