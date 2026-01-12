@@ -72,25 +72,8 @@ export default function NewAccountPage() {
 
       const account = await res.json()
 
-      // Track onboarding action and sync progress
-      try {
-        const trackResponse = await fetch('/api/auth/complete-onboarding', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'add_account' }),
-        })
-
-        if (trackResponse.ok) {
-          const trackData = await trackResponse.json()
-          // Show smart message from backend
-          toast.success(trackData.message || '✅ Account created successfully!')
-        }
-      } catch (error) {
-        console.error('Error tracking onboarding action:', error)
-        toast.success('✅ Account created successfully!')
-      }
-
-      // Stay on same page - wizard will auto-show with next step
+      // Redirect to accounts listing page
+      router.push('/dashboard/accounts')
       router.refresh()
     } catch (err: any) {
       setError(err.message || 'An error occurred')

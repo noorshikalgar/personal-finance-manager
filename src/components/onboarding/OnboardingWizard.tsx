@@ -181,14 +181,14 @@ export function OnboardingWizard({
       })
 
       if (response.ok) {
-        toast.success('Tour skipped! You can start exploring.')
+        // toast.success('Tour skipped! You can start exploring.')
         onComplete()
       } else {
         throw new Error('Failed to skip')
       }
     } catch (error) {
       console.error('Error skipping onboarding:', error)
-      toast.error('Failed to skip tour')
+      // toast.error('Failed to skip tour')
       setIsSkipping(false)
     }
   }
@@ -206,7 +206,7 @@ export function OnboardingWizard({
 
         if (response.ok) {
           console.log('✅ Onboarding completed')
-          toast.success('🎉 Welcome to Finance Manager!')
+          // toast.success('🎉 Welcome to Finance Manager!')
           setIsHidden(true)
           setTimeout(() => {
             router.push('/dashboard')

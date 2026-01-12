@@ -595,7 +595,7 @@ export default function AnalyzeClient() {
                                   <div
                                     className="bg-card0 transition-all duration-300 hover:brightness-110"
                                     style={{ width: `${incomePercent}%` }}
-                                    title={`Income: ${formatCurrency(account.income)}`}
+                                    title={`Income: ${formatAmount(account.income)}`}
                                   />
                                 )}
                                 {account.expense > 0 && (
@@ -603,7 +603,7 @@ export default function AnalyzeClient() {
                                     className="bg-card0 transition-all duration-300 hover:brightness-110"
                                     style={{ width: `${expensePercent}%` }}
 
-                                    title={`Expense: ${formatCurrency(account.expense)}`}
+                                    title={`Expense: ${formatAmount(account.expense)}`}
                                   />
                                 )}
                                 {total === 0 && (
@@ -720,14 +720,14 @@ export default function AnalyzeClient() {
                                 <div
                                   className="bg-card0 transition-all duration-300 hover:brightness-110"
                                   style={{ width: `${incomePercent}%` }}
-                                  title={`Income: ${formatCurrency(account.income)}`}
+                                  title={`Income: ${formatAmount(account.income)}`}
                                 />
                               )}
                               {account.expense > 0 && (
                                 <div
                                   className="bg-card0 transition-all duration-300 hover:brightness-110"
                                   style={{ width: `${expensePercent}%` }}
-                                  title={`Expense: ${formatCurrency(account.expense)}`}
+                                  title={`Expense: ${formatAmount(account.expense)}`}
                                 />
                               )}
                               {total === 0 && <div className="w-full bg-gray-300" />}

@@ -91,7 +91,7 @@ export default function RecurringDetailsClient({
     setLoading(true)
     try {
       const response = await fetch(`/api/recurring/${recurring.id}`, {
-        method: 'PUT',
+        method: 'PATCH',
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify({
           accountId: formData.accountId,

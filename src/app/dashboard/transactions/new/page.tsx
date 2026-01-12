@@ -85,25 +85,7 @@ export default function NewTransactionPage() {
         throw new Error(errorData.error || 'Failed to create transaction')
       }
 
-      // Track onboarding action and sync progress
-      try {
-        const trackResponse = await fetch('/api/auth/complete-onboarding', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'add_transaction' }),
-        })
-
-        if (trackResponse.ok) {
-          const trackData = await trackResponse.json()
-          // Show smart message from backend
-          toast.success(trackData.message || '✅ Transaction created successfully!')
-        }
-      } catch (error) {
-        console.error('Error tracking onboarding action:', error)
-        toast.success('✅ Transaction created successfully!')
-      }
-
-      // Stay on same page - wizard will auto-show with Done step
+      router.push('/dashboard/transactions')
       router.refresh()
     } catch (err: any) {
       setError(err.message || 'An error occurred')

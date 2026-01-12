@@ -7,6 +7,8 @@ import { Plus } from 'lucide-react'
 import DashboardOverview from '@/components/dashboard/DashboardOverview'
 import BudgetTracker from '@/components/dashboard/BudgetTracker'
 import { GoalsTracker } from '@/components/dashboard/GoalsTracker'
+import { SimpleWelcome } from '@/components/onboarding/SimpleWelcome'
+import { markWelcomeComplete } from './actions'
 
 export default async function DashboardPage() {
   const session = await auth()
@@ -22,6 +24,9 @@ export default async function DashboardPage() {
   if (!user) {
     redirect('/auth/signin')
   }
+
+  // Check if this is first visit (show simple welcome)
+  const showWelcome = !user.onboardingCompleted && !user.onboardingSkipped
 
   // Fetch dashboard data
   const [accountsRaw, transactionsRaw, categoriesRaw, recurringTransactionsRaw] = await Promise.all([
@@ -100,7 +105,20 @@ export default async function DashboardPage() {
   }))
 
   return (
-    <div className="p-6 space-y-6">
+    <>
+      {/* Simple Welcome Popup - Only shows on first visit */}
+      {showWelcome && (
+        <SimpleWelcome
+          userName={user.name || user.email?.split('@')[0]}
+          onClose={markWelcomeComplete}
+        />
+      )}
+
+      {/* Complex Onboarding - COMPLETELY DISABLED */}
+      {/* Will improve and re-enable later */}
+      {/* DO NOT SHOW THIS ANYWHERE */}
+
+      <div className="p-6 space-y-6">
         <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
           <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
           <div className="grid w-full gap-3 sm:auto-cols-fr sm:grid-flow-col md:w-auto">
@@ -133,5 +151,6 @@ export default async function DashboardPage() {
         <BudgetTracker />
         <GoalsTracker />
       </div>
-    )
-  }
+    </>
+  )
+}

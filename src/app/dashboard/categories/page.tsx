@@ -52,24 +52,6 @@ export default function CategoriesPage() {
         throw new Error(errorData.error || 'Failed to create category')
       }
 
-      // Track onboarding action and sync progress
-      try {
-        const trackResponse = await fetch('/api/auth/complete-onboarding', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({ action: 'add_category' }),
-        })
-
-        if (trackResponse.ok) {
-          const trackData = await trackResponse.json()
-          // Show smart message from backend
-          toast.success(trackData.message || '✅ Category created successfully!')
-        }
-      } catch (error) {
-        console.error('Error tracking onboarding action:', error)
-        toast.success('✅ Category created successfully!')
-      }
-
       setName('')
       setMonthlyBudget('')
       setColor('#3B82F6')
