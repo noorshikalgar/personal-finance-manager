@@ -1,11 +1,12 @@
 'use client'
 
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
-import { User, Download, Trash2, Shield, Database, Calendar, Info, FileSpreadsheet } from 'lucide-react'
+import { User, Download, Trash2, Shield, Database, Calendar, Info, FileSpreadsheet, DollarSign } from 'lucide-react'
 import DeleteAccountModal from './DeleteAccountModal'
+import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
 
 interface SettingsClientProps {
   user: {
@@ -14,6 +15,7 @@ interface SettingsClientProps {
     createdAt: string
     updatedAt: string
     pin: string | null
+    currency: string
   }
   stats: {
     accounts: number
@@ -25,11 +27,14 @@ interface SettingsClientProps {
 
 export default function SettingsClient({ user, stats }: SettingsClientProps) {
   const router = useRouter()
+  const { setCurrency } = useAmountVisibility()
   const [showDeleteModal, setShowDeleteModal] = useState(false)
   const [exportLoading, setExportLoading] = useState(false)
   const [showPinModal, setShowPinModal] = useState(false)
   const [pinInput, setPinInput] = useState('')
   const [pinLoading, setPinLoading] = useState(false)
+  const [selectedCurrency, setSelectedCurrency] = useState(user.currency || 'INR')
+  const [currencyLoading, setCurrencyLoading] = useState(false)
 
   const handleExportData = async () => {
     setExportLoading(true)
@@ -117,6 +122,31 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
     }
   }
 
+  const handleCurrencyChange = async (newCurrency: string) => {
+    setCurrencyLoading(true)
+    try {
+      const response = await fetch('/api/user/currency', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ currency: newCurrency }),
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update currency')
+      }
+
+      setSelectedCurrency(newCurrency)
+      setCurrency(newCurrency)
+      router.refresh()
+      alert('Currency updated successfully!')
+    } catch (error) {
+      console.error('Currency update error:', error)
+      alert('Failed to update currency')
+    } finally {
+      setCurrencyLoading(false)
+    }
+  }
+
   return (
     <div className="space-y-6">
       <div>
@@ -190,6 +220,31 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
                     Remove
                   </Button>
                 )}
+              </div>
+            </div>
+          </div>
+
+          <div className="pt-4 border-t border-border">
+            <div className="flex items-center justify-between">
+              <div className="flex-1">
+                <label className="block text-sm font-medium text-foreground mb-1">
+                  <DollarSign className="inline h-4 w-4 mr-1" />
+                  Preferred Currency
+                </label>
+                <p className="text-sm text-muted-foreground">
+                  Select your preferred currency for displaying amounts
+                </p>
+              </div>
+              <div className="flex gap-2">
+                <select
+                  value={selectedCurrency}
+                  onChange={(e) => handleCurrencyChange(e.target.value)}
+                  disabled={currencyLoading}
+                  className="px-3 py-2 border border-border rounded-md bg-card text-foreground text-sm focus:outline-none focus:ring-2 focus:ring-blue-500 disabled:opacity-50"
+                >
+                  <option value="INR">₹ Indian Rupee (INR)</option>
+                  <option value="USD">$ US Dollar (USD)</option>
+                </select>
               </div>
             </div>
           </div>

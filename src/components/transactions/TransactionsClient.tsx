@@ -5,6 +5,7 @@ import { Transaction, Account, Category } from '@prisma/client'
 import { Plus, Search, Filter, Trash2, Edit } from 'lucide-react'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
+import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
 
 type TransactionWithRelations = Transaction & {
   account: Pick<Account, 'name' | 'type'>
@@ -12,6 +13,7 @@ type TransactionWithRelations = Transaction & {
 }
 
 export default function TransactionsClient() {
+  const { formatAmount } = useAmountVisibility()
   const [transactions, setTransactions] = useState<TransactionWithRelations[]>([])
   const [loading, setLoading] = useState(true)
   const [page, setPage] = useState(1)
@@ -113,13 +115,6 @@ export default function TransactionsClient() {
     if (res.ok) {
       fetchTransactions()
     }
-  }
-
-  const formatCurrency = (amount: number) => {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: 'USD',
-    }).format(amount)
   }
 
   const formatDate = (date: Date) => {
@@ -341,7 +336,7 @@ export default function TransactionsClient() {
                               : 'text-destructive'
                           }
                         >
-                          {formatCurrency(Number(transaction.amount))}
+                          {formatAmount(Number(transaction.amount))}
                         </span>
                       </td>
                       <td className="px-6 py-4 whitespace-nowrap text-right text-sm font-medium">

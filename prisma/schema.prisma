@@ -18,6 +18,7 @@ model User {
   email         String    @unique
   passwordHash  String
   pin           String?   // Optional PIN to hide amounts on dashboard
+  currency      String    @default("INR") // User's preferred currency (INR or USD)
   
   // Onboarding tracking
   onboardingCompleted Boolean @default(false) // Final completion flag

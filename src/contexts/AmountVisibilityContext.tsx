@@ -1,12 +1,14 @@
 'use client'
 
-import { createContext, useContext, useState, ReactNode } from 'react'
+import { createContext, useContext, useState, useEffect, ReactNode } from 'react'
 
 interface AmountVisibilityContextType {
   isVisible: boolean
   toggleVisibility: () => Promise<void>
-  formatAmount: (amount: number | null, currency?: string) => string
+  formatAmount: (amount: number | null) => string
   setVisibility: (visible: boolean) => void
+  currency: string
+  setCurrency: (currency: string) => void
 }
 
 const AmountVisibilityContext = createContext<AmountVisibilityContextType | undefined>(undefined)
@@ -17,6 +19,23 @@ export function AmountVisibilityProvider({ children }: { children: ReactNode }) 
   const [pinInput, setPinInput] = useState('')
   const [pinError, setPinError] = useState('')
   const [isVerifying, setIsVerifying] = useState(false)
+  const [currency, setCurrencyState] = useState('INR')
+
+  // Fetch user's currency preference on mount
+  useEffect(() => {
+    const fetchCurrency = async () => {
+      try {
+        const response = await fetch('/api/user/currency')
+        if (response.ok) {
+          const data = await response.json()
+          setCurrencyState(data.currency || 'INR')
+        }
+      } catch (error) {
+        console.error('Failed to fetch currency:', error)
+      }
+    }
+    fetchCurrency()
+  }, [])
 
   const checkPinRequired = async () => {
     try {
@@ -91,17 +110,23 @@ export function AmountVisibilityProvider({ children }: { children: ReactNode }) 
     setPinError('')
   }
 
-  const formatAmount = (amount: number | null, currency: string = 'USD') => {
+  const formatAmount = (amount: number | null) => {
     if (amount === null) return '-'
     
     if (!isVisible) {
       return 'XXX.XX'
     }
 
-    return new Intl.NumberFormat('en-US', {
+    const locale = currency === 'INR' ? 'en-IN' : 'en-US'
+    
+    return new Intl.NumberFormat(locale, {
       style: 'currency',
       currency,
     }).format(amount)
+  }
+
+  const setCurrency = (newCurrency: string) => {
+    setCurrencyState(newCurrency)
   }
 
   const setVisibility = (visible: boolean) => {
@@ -109,7 +134,7 @@ export function AmountVisibilityProvider({ children }: { children: ReactNode }) 
   }
 
   return (
-    <AmountVisibilityContext.Provider value={{ isVisible, toggleVisibility, formatAmount, setVisibility }}>
+    <AmountVisibilityContext.Provider value={{ isVisible, toggleVisibility, formatAmount, setVisibility, currency, setCurrency }}>
       {children}
       
       {/* PIN Verification Modal */}
