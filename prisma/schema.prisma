@@ -39,6 +39,7 @@ model User {
   recurringTransactions RecurringTransaction[]
   goals         Goal[]
   reminders     Reminder[]
+  notifications Notification[]
 }
 
 // ============================================================================
@@ -314,4 +315,37 @@ model ReminderAttachment {
   uploadedAt      DateTime  @default(now())
   
   @@index([reminderId])
+}
+
+// ============================================================================
+// NOTIFICATIONS - In-app notifications for users
+// ============================================================================
+
+enum NotificationType {
+  REMINDER_OVERDUE
+  REMINDER_DUE_SOON
+  BUDGET_EXCEEDED
+  GOAL_COMPLETED
+  MONTHLY_SUMMARY
+  SYSTEM
+}
+
+model Notification {
+  id        String           @id @default(cuid())
+  userId    String
+  user      User             @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  type      NotificationType
+  title     String
+  message   String
+  
+  // Link to related entity (optional)
+  relatedId   String?        // ID of reminder, category, goal, etc.
+  relatedType String?        // 'reminder', 'category', 'goal'
+  
+  isRead    Boolean          @default(false)
+  createdAt DateTime         @default(now())
+  
+  @@index([userId, isRead])
+  @@index([createdAt])
 }

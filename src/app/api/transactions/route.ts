@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { checkCategoryBudget, checkGoalCompletion } from '@/lib/notifications'
 
 // GET transactions with filtering and pagination
 export async function GET(req: NextRequest) {
@@ -217,6 +218,27 @@ export async function POST(req: NextRequest) {
 
       return transaction
     })
+
+    // Check budget and goal completion after transaction is created
+    if (categoryId) {
+      await checkCategoryBudget(categoryId, userId).catch((error) => {
+        console.error('Failed to check category budget:', error);
+      });
+
+      // Check if any goals are linked to this category
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+        include: {
+          goal: true,
+        },
+      });
+
+      if (category?.goal) {
+        await checkGoalCompletion(category.goal.id, userId).catch((error) => {
+          console.error('Failed to check goal completion:', error);
+        });
+      }
+    }
 
     return NextResponse.json(result, { status: 201 })
   } catch (error) {

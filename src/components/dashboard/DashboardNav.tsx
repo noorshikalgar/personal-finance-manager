@@ -5,6 +5,7 @@ import { usePathname } from 'next/navigation'
 import { signOut } from 'next-auth/react'
 import { Button } from '@/components/ui/button'
 import { ThemeToggle } from '@/components/ThemeToggle'
+import NotificationBell from '@/components/notifications/NotificationBell'
 import { 
   Home, 
   CreditCard, 
@@ -152,6 +153,9 @@ export default function DashboardNav({ userEmail }: DashboardNavProps) {
               {isVisible ? <Eye className="h-4 w-4" /> : <EyeOff className="h-4 w-4" />}
             </Button>
 
+            {/* Notification Bell */}
+            <NotificationBell />
+
             {/* Theme Toggle */}
             <ThemeToggle />
 
@@ -186,6 +190,9 @@ export default function DashboardNav({ userEmail }: DashboardNavProps) {
 
           {/* Mobile menu button */}
           <div className="flex md:hidden items-center space-x-2">
+            {/* Notification Bell */}
+            <NotificationBell />
+            
             <Button
               onClick={toggleVisibility}
               variant="ghost"

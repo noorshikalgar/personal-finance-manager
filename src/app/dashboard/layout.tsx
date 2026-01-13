@@ -6,6 +6,7 @@ import { OnboardingCheck } from '@/components/onboarding/OnboardingCheck'
 import { AmountVisibilityProvider } from '@/contexts/AmountVisibilityContext'
 import { syncOnboardingProgress } from '@/lib/onboarding'
 import { Toaster } from 'sonner'
+import NotificationToast from '@/components/notifications/NotificationToast'
 
 export const dynamic = 'force-dynamic'
 export const revalidate = 0
@@ -72,6 +73,7 @@ export default async function DashboardLayout({
           {children}
         </main>
         <Toaster position="top-center" />
+        <NotificationToast />
       </div>
     </AmountVisibilityProvider>
   )

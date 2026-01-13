@@ -18,6 +18,7 @@ interface RecurringWithNumbers {
   endDate: Date | null
   paused: boolean
   lastRunAt: Date | null
+  linkedToAccountIncome: boolean
   account: AccountWithNumbers
   category: CategoryWithNumbers | null
 }
