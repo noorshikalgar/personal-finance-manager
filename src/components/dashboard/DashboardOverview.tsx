@@ -239,7 +239,7 @@ export default function DashboardOverview({
                 {upcomingRecurring.slice(0, 5).map((rec) => (
                   <div key={rec.id} className="flex items-center justify-between py-2 border-b border-border last:border-0">
                     <div className="flex items-center">
-                      <Calendar className="h-4 w-4 text-muted-foreground mr-2" />
+                      <Calendar className="h-4 w-4 text-muted-foreground dark:text-muted-foreground mr-2" />
                       <div>
                         <p className="text-sm font-medium text-card-foreground">
                           {rec.note || rec.category?.name || 'Recurring Payment'}

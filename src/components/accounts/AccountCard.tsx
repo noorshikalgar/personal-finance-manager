@@ -61,7 +61,7 @@ export default function AccountCard({ account }: AccountCardProps) {
             </div>
             {account.billingCycleStart && (
               <div className="flex items-center text-sm text-muted-foreground">
-                <Calendar className="h-4 w-4 mr-1" />
+                <Calendar className="h-4 w-4 mr-1 text-muted-foreground dark:text-muted-foreground" />
                 Billing: Day {account.billingCycleStart}
               </div>
             )}

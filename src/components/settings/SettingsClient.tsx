@@ -202,7 +202,7 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
           <div className="grid grid-cols-1 sm:grid-cols-2 gap-4">
             <div>
               <label className="block text-sm font-medium text-foreground mb-1">
-                <Calendar className="inline h-4 w-4 mr-1" />
+                <Calendar className="inline h-4 w-4 mr-1 text-muted-foreground dark:text-muted-foreground" />
                 Account Created
               </label>
               <p className="text-foreground">{formatDate(user.createdAt)}</p>

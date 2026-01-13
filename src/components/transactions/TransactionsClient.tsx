@@ -220,7 +220,7 @@ export default function TransactionsClient() {
                     setFromDate(e.target.value)
                     setPage(1)
                   }}
-                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:bg-card dark:text-foreground"
                 />
               </div>
               <div>
@@ -234,7 +234,7 @@ export default function TransactionsClient() {
                     setToDate(e.target.value)
                     setPage(1)
                   }}
-                  className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+                  className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:bg-card dark:text-foreground"
                 />
               </div>
               <div>

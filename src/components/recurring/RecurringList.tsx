@@ -80,7 +80,7 @@ export default function RecurringList({
     <>
       {recurringTransactions.length === 0 ? (
         <div className="bg-card rounded-lg shadow p-12 text-center">
-          <Calendar className="mx-auto h-12 w-12 text-muted-foreground" />
+          <Calendar className="mx-auto h-12 w-12 text-muted-foreground dark:text-muted-foreground" />
           <h3 className="mt-4 text-lg font-medium text-foreground">No recurring transactions yet</h3>
           <p className="mt-2 text-muted-foreground">
             Set up automatic recurring transactions like salary, rent, subscriptions, etc.

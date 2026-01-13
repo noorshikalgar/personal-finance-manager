@@ -212,7 +212,7 @@ export default function ExportClient({ userEmail }: ExportClientProps) {
 
         <div className="bg-card rounded-lg shadow p-4 border-l-4 border-destructive">
           <div className="flex items-center mb-2">
-            <Calendar className="h-5 w-5 text-destructive mr-2" />
+            <Calendar className="h-5 w-5 text-destructive dark:text-destructive mr-2" />
             <h4 className="font-semibold text-foreground">Timestamped</h4>
           </div>
           <p className="text-sm text-muted-foreground">

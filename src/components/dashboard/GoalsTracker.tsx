@@ -151,7 +151,7 @@ export function GoalsTracker() {
                   </span>
                   {goal.daysRemaining && goal.daysRemaining > 0 && (
                     <span className="text-xs text-muted-foreground flex items-center gap-1">
-                      <Calendar className="w-3 h-3" />
+                      <Calendar className="w-3 h-3 text-muted-foreground dark:text-muted-foreground" />
                       {goal.daysRemaining} days left
                     </span>
                   )}
