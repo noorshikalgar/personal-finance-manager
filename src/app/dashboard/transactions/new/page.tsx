@@ -8,6 +8,7 @@ import Link from 'next/link'
 import { Account, Category } from '@prisma/client'
 import { toast } from 'sonner'
 import CategorySelector from '@/components/categories/CategorySelector'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 export default function NewTransactionPage() {
   const router = useRouter()
@@ -21,7 +22,7 @@ export default function NewTransactionPage() {
   const [accountId, setAccountId] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [reminderId, setReminderId] = useState('')
-  const [date, setDate] = useState(new Date().toISOString().split('T')[0])
+  const [date, setDate] = useState<Date | null>(new Date())
   const [amount, setAmount] = useState('')
   const [type, setType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE')
   const [note, setNote] = useState('')
@@ -106,7 +107,7 @@ export default function NewTransactionPage() {
           accountId,
           categoryId: categoryId || null,
           reminderId: reminderId || null,
-          date: new Date(date).toISOString(),
+          date: date?.toISOString() || new Date().toISOString(),
           amount: finalAmount,
           type,
           note,
@@ -220,13 +221,11 @@ export default function NewTransactionPage() {
             <label htmlFor="date" className="block text-sm font-medium text-foreground">
               Date *
             </label>
-            <input
-              type="date"
-              id="date"
-              required
+            <DatePicker
               value={date}
-              onChange={(e) => setDate(e.target.value)}
-              className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm focus:outline-none focus:ring-primary focus:border-blue-500"
+              onChange={setDate}
+              placeholder="Select date"
+              className="mt-1"
             />
           </div>
 

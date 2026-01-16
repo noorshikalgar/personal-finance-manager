@@ -55,6 +55,8 @@ export default function SettingsClient({ user, stats }: SettingsClientProps) {
     { id: 'green', name: 'Green', preview: '#10b981' },
     { id: 'orange', name: 'Orange', preview: '#f97316' },
     { id: 'zinc', name: 'Zinc', preview: '#71717a' },
+    { id: 'tokyo-night', name: 'Tokyo Night', preview: '#7aa2f7' },
+    { id: 'tokyo-light', name: 'Tokyo Light', preview: '#8c6c3e' },
   ]
 
   const handleExportData = async () => {

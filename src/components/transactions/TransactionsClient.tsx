@@ -3,6 +3,7 @@
 import { useEffect, useState } from 'react'
 import { Transaction, Account, Category } from '@prisma/client'
 import { Plus, Search, Filter, Trash2, Edit } from 'lucide-react'
+import { DatePicker } from '@/components/ui/DatePicker'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
 import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
@@ -213,28 +214,28 @@ export default function TransactionsClient() {
                 <label className="block text-sm font-medium text-foreground mb-1">
                   Date From
                 </label>
-                <input
-                  type="date"
-                  value={fromDate}
-                  onChange={(e) => {
-                    setFromDate(e.target.value)
+                <DatePicker
+                  value={fromDate ? new Date(fromDate) : null}
+                  onChange={date => {
+                    setFromDate(date ? date.toISOString().split('T')[0] : '')
                     setPage(1)
                   }}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:bg-card dark:text-foreground"
+                  placeholder="Select start date"
+                  className="w-full"
                 />
               </div>
               <div>
                 <label className="block text-sm font-medium text-foreground mb-1">
                   Date To
                 </label>
-                <input
-                  type="date"
-                  value={toDate}
-                  onChange={(e) => {
-                    setToDate(e.target.value)
+                <DatePicker
+                  value={toDate ? new Date(toDate) : null}
+                  onChange={date => {
+                    setToDate(date ? date.toISOString().split('T')[0] : '')
                     setPage(1)
                   }}
-                  className="w-full px-3 py-2 border border-border rounded-md bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary dark:bg-card dark:text-foreground"
+                  placeholder="Select end date"
+                  className="w-full"
                 />
               </div>
               <div>

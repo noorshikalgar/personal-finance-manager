@@ -279,6 +279,60 @@
   --chart-5: #f4f4f5;
 }
 
+/* Tokyo Night Theme - Dark Editor Theme */
+.theme-tokyo-night {
+  --background: #1a1b26;
+  --foreground: #c0caf5;
+  --card: #24283b;
+  --card-foreground: #c0caf5;
+  --popover: #24283b;
+  --popover-foreground: #c0caf5;
+  --primary: #7aa2f7;
+  --primary-foreground: #1a1b26;
+  --secondary: #414868;
+  --secondary-foreground: #c0caf5;
+  --muted: #565f89;
+  --muted-foreground: #9aa5ce;
+  --accent: #bb9af7;
+  --accent-foreground: #1a1b26;
+  --destructive: #f7768e;
+  --border: #414868;
+  --input: #24283b;
+  --ring: #7aa2f7;
+  --chart-1: #7aa2f7;
+  --chart-2: #bb9af7;
+  --chart-3: #7dcfff;
+  --chart-4: #9ece6a;
+  --chart-5: #e0af68;
+}
+
+/* Tokyo Light Theme - Light Editor Theme */
+.theme-tokyo-light {
+  --background: #d5d6db;
+  --foreground: #343b58;
+  --card: #e9e9ed;
+  --card-foreground: #343b58;
+  --popover: #e9e9ed;
+  --popover-foreground: #343b58;
+  --primary: #8c6c3e;
+  --primary-foreground: #ffffff;
+  --secondary: #cbccd1;
+  --secondary-foreground: #343b58;
+  --muted: #9699a3;
+  --muted-foreground: #565a6e;
+  --accent: #5a4a78;
+  --accent-foreground: #ffffff;
+  --destructive: #8c4351;
+  --border: #cbccd1;
+  --input: #e9e9ed;
+  --ring: #8c6c3e;
+  --chart-1: #8c6c3e;
+  --chart-2: #5a4a78;
+  --chart-3: #2e7de9;
+  --chart-4: #485e30;
+  --chart-5: #965027;
+}
+
 @layer base {
   * {
     @apply border-border outline-ring/50;

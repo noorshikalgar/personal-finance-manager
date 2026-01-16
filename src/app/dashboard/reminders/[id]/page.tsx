@@ -57,27 +57,14 @@ interface Reminder {
 
 export default function ReminderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
+  const { formatAmount, currency } = useAmountVisibility()
   const [reminderId, setReminderId] = useState<string | null>(null)
   const [reminder, setReminder] = useState<Reminder | null>(null)
   const [loading, setLoading] = useState(true)
   const [activeTab, setActiveTab] = useState<'overview' | 'transactions' | 'analytics' | 'attachments'>('overview')
   const [uploading, setUploading] = useState(false)
-  const [userCurrency, setUserCurrency] = useState('USD')
 
   useEffect(() => {
-    // Fetch user currency
-    async function fetchUserCurrency() {
-      try {
-        const response = await fetch('/api/user/currency')
-        if (response.ok) {
-          const data = await response.json()
-          setUserCurrency(data.currency || 'USD')
-        }
-      } catch (error) {
-        console.error('Error fetching user currency:', error)
-      }
-    }
-    fetchUserCurrency()
 
     params.then(p => {
       setReminderId(p.id)
@@ -170,13 +157,6 @@ export default function ReminderDetailPage({ params }: { params: Promise<{ id: s
       day: 'numeric',
       year: 'numeric',
     })
-  }
-
-  function formatCurrency(amount: number) {
-    return new Intl.NumberFormat('en-US', {
-      style: 'currency',
-      currency: userCurrency,
-    }).format(amount)
   }
 
   function formatFileSize(bytes: number) {
@@ -308,7 +288,7 @@ export default function ReminderDetailPage({ params }: { params: Promise<{ id: s
                 <div>
                   <p className="text-sm text-muted-foreground">Estimated Amount</p>
                   <p className="text-2xl font-bold">
-                    {reminder.estimatedCost ? formatCurrency(Number(reminder.estimatedCost)) : formatCurrency(0)}
+                    {reminder.estimatedCost ? formatAmount(Number(reminder.estimatedCost)) : formatAmount(0)}
                   </p>
                 </div>
                 <div>

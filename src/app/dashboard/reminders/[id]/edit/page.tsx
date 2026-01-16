@@ -6,6 +6,7 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import CategorySelector from '@/components/categories/CategorySelector'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 interface Category {
   id: string

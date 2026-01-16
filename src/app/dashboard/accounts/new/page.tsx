@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import { toast } from 'sonner'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 export default function NewAccountPage() {
   const router = useRouter()
@@ -244,12 +245,10 @@ export default function NewAccountPage() {
                         <label htmlFor="recurringFirstDate" className="block text-xs font-medium text-muted-foreground mb-1">
                           First Payment Date
                         </label>
-                        <input
-                          type="date"
-                          id="recurringFirstDate"
-                          value={recurringFirstDate}
-                          onChange={(e) => setRecurringFirstDate(e.target.value)}
-                          className="w-full px-3 py-2 border border-border rounded-md text-sm bg-card text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+                        <DatePicker
+                          value={recurringFirstDate ? new Date(recurringFirstDate) : null}
+                          onChange={(date) => setRecurringFirstDate(date ? date.toISOString().split('T')[0] : '')}
+                          placeholder="Select first payment date"
                         />
                       </div>
                       <p className="text-xs text-muted-foreground">

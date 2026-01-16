@@ -2,7 +2,7 @@
 
 import { createContext, useContext, useEffect, useState } from 'react'
 
-type ThemePreset = 'light' | 'dark' | 'violet' | 'rose' | 'blue' | 'green' | 'orange' | 'zinc'
+type ThemePreset = 'light' | 'dark' | 'violet' | 'rose' | 'blue' | 'green' | 'orange' | 'zinc' | 'tokyo-night' | 'tokyo-light'
 type ThemeMode = 'light' | 'dark' | 'color'
 
 interface ThemeContextType {
@@ -72,7 +72,7 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
     const html = document.documentElement
     
     // Remove all theme classes
-    html.classList.remove('dark', 'theme-violet', 'theme-rose', 'theme-blue', 'theme-green', 'theme-orange', 'theme-zinc')
+    html.classList.remove('dark', 'theme-violet', 'theme-rose', 'theme-blue', 'theme-green', 'theme-orange', 'theme-zinc', 'theme-tokyo-night', 'theme-tokyo-light')
     
     // Apply mode or color theme
     if (currentMode === 'dark') {
@@ -106,7 +106,10 @@ export function ThemeProvider({ children }: { children: React.ReactNode }) {
 
   const setThemePreset = async (newTheme: ThemePreset) => {
     setTheme(newTheme)
-    applyTheme(newTheme, mode)
+    // Auto-switch to color mode when user selects a theme from settings
+    const newMode = 'color'
+    setMode(newMode)
+    applyTheme(newTheme, newMode)
     
     // Save to server
     try {

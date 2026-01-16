@@ -7,6 +7,7 @@ import { ArrowLeft, Save, Pause, Play, Trash2, Calendar } from 'lucide-react'
 import type { AccountWithNumbers, CategoryWithNumbers } from '@/types'
 import Link from 'next/link'
 import CategorySelector from '@/components/categories/CategorySelector'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 interface RecurringWithNumbers {
   id: string
@@ -496,13 +497,10 @@ export default function RecurringDetailsClient({
               Start Date
             </label>
             {isEditing ? (
-              <input
-                type="date"
-                value={formData.startDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, startDate: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-border rounded-md"
+              <DatePicker
+                value={formData.startDate ? new Date(formData.startDate) : null}
+                onChange={(date) => setFormData({ ...formData, startDate: date ? date.toISOString().split('T')[0] : '' })}
+                placeholder="Select start date"
               />
             ) : (
               <p className="text-foreground">
@@ -517,13 +515,10 @@ export default function RecurringDetailsClient({
               End Date (Optional)
             </label>
             {isEditing ? (
-              <input
-                type="date"
-                value={formData.endDate}
-                onChange={(e) =>
-                  setFormData({ ...formData, endDate: e.target.value })
-                }
-                className="w-full px-3 py-2 border border-border rounded-md"
+              <DatePicker
+                value={formData.endDate ? new Date(formData.endDate) : null}
+                onChange={(date) => setFormData({ ...formData, endDate: date ? date.toISOString().split('T')[0] : '' })}
+                placeholder="Select end date"
               />
             ) : (
               <p className="text-foreground">

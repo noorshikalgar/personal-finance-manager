@@ -6,6 +6,7 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import CategorySelector from '@/components/categories/CategorySelector'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 interface Category {
   id: string
@@ -163,12 +164,10 @@ export default function NewReminderPage() {
               <label className="block text-sm font-medium mb-2">
                 Next Due Date <span className="text-red-500">*</span>
               </label>
-              <input
-                type="date"
-                required
-                value={formData.nextDate}
-                onChange={(e) => setFormData({ ...formData, nextDate: e.target.value })}
-                className="w-full px-3 py-2 border rounded-lg"
+              <DatePicker
+                value={formData.nextDate ? new Date(formData.nextDate) : null}
+                onChange={(date) => setFormData({ ...formData, nextDate: date ? date.toISOString().split('T')[0] : '' })}
+                placeholder="Select next due date"
               />
             </div>
 

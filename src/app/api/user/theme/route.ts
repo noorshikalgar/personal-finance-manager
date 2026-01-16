@@ -12,7 +12,7 @@ export async function POST(request: NextRequest) {
     const { theme, accentColor } = await request.json()
 
     // Validate theme
-    const validThemes = ['light', 'dark', 'violet', 'rose', 'blue', 'green', 'orange']
+    const validThemes = ['light', 'dark', 'violet', 'rose', 'blue', 'green', 'orange', 'zinc', 'tokyo-night', 'tokyo-light']
     if (theme && !validThemes.includes(theme)) {
       return NextResponse.json({ error: 'Invalid theme' }, { status: 400 })
     }

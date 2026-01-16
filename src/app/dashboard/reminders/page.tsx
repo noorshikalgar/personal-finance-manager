@@ -5,6 +5,7 @@ import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { Plus, Bell, Calendar, DollarSign, FileText, AlertCircle } from 'lucide-react'
+import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
 
 interface Reminder {
   id: string
@@ -28,6 +29,7 @@ interface Reminder {
 
 export default function RemindersPage() {
   const router = useRouter()
+  const { formatAmount } = useAmountVisibility()
   const [reminders, setReminders] = useState<Reminder[]>([])
   const [loading, setLoading] = useState(true)
   const [filter, setFilter] = useState<'all' | 'upcoming' | 'overdue'>('all')
@@ -199,7 +201,7 @@ export default function RemindersPage() {
                   {reminder.isExpenseRelated && reminder.estimatedCost && (
                     <div className="flex items-center gap-2 text-muted-foreground">
                       <DollarSign className="w-4 h-4" />
-                      <span>~${Number(reminder.estimatedCost).toFixed(2)}</span>
+                      <span>~{formatAmount(Number(reminder.estimatedCost))}</span>
                     </div>
                   )}
 

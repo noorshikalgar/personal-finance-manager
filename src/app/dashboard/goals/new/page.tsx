@@ -5,6 +5,8 @@ import { useRouter } from 'next/navigation';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { ArrowLeft, Loader2 } from 'lucide-react';
+import { useAmountVisibility } from '@/contexts/AmountVisibilityContext';
+import { DatePicker } from '@/components/ui/DatePicker';
 
 type Category = {
   id: string
@@ -27,6 +29,7 @@ const GOAL_CATEGORIES = [
 
 export default function CreateGoalPage() {
   const router = useRouter();
+  const { currency } = useAmountVisibility();
   const [loading, setLoading] = useState(false);
   const [error, setError] = useState<string | null>(null);
   const [categories, setCategories] = useState<Category[]>([]);
@@ -169,7 +172,7 @@ export default function CreateGoalPage() {
           
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Target Amount ($)</label>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Target Amount ({currency})</label>
               <input
                 type="number"
                 name="targetAmount"
@@ -184,7 +187,7 @@ export default function CreateGoalPage() {
             </div>
             
             <div>
-              <label className="block text-sm font-medium text-foreground mb-1.5">Current Amount ($)</label>
+              <label className="block text-sm font-medium text-foreground mb-1.5">Current Amount ({currency})</label>
               <input
                 type="number"
                 name="currentAmount"
@@ -199,12 +202,10 @@ export default function CreateGoalPage() {
 
             <div>
               <label className="block text-sm font-medium text-foreground mb-1.5">Deadline (Optional)</label>
-              <input
-                type="date"
-                name="deadline"
-                value={formData.deadline}
-                onChange={handleChange}
-                className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+              <DatePicker
+                value={formData.deadline ? new Date(formData.deadline) : null}
+                onChange={(date) => setFormData(prev => ({ ...prev, deadline: date ? date.toISOString().split('T')[0] : '' }))}
+                placeholder="Select deadline"
               />
             </div>
           </div>

@@ -4,6 +4,7 @@ import { useEffect, useState } from 'react';
 import Link from 'next/link';
 import { Button } from '@/components/ui/button';
 import { Target, Plus, Edit2, Trash2, Check, AlertCircle, Calendar } from 'lucide-react';
+import { useAmountVisibility } from '@/contexts/AmountVisibilityContext';
 
 interface Goal {
   id: string;
@@ -21,6 +22,7 @@ interface Goal {
 }
 
 export default function GoalsPage() {
+  const { formatAmount } = useAmountVisibility();
   const [goals, setGoals] = useState<Goal[]>([]);
   const [loading, setLoading] = useState(true);
   const [filter, setFilter] = useState<'all' | 'active' | 'completed'>('all');
@@ -229,19 +231,19 @@ export default function GoalsPage() {
                 <div>
                   <p className="text-xs text-muted-foreground">Current</p>
                   <p className="text-lg font-semibold text-foreground">
-                    ${Number(goal.currentAmount).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                    {formatAmount(Number(goal.currentAmount))}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Target</p>
                   <p className="text-lg font-semibold text-foreground">
-                    ${Number(goal.targetAmount).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                    {formatAmount(Number(goal.targetAmount))}
                   </p>
                 </div>
                 <div>
                   <p className="text-xs text-muted-foreground">Remaining</p>
                   <p className="text-lg font-semibold text-foreground">
-                    ${Number(goal.remaining).toLocaleString('en-US', { maximumFractionDigits: 2 })}
+                    {formatAmount(Number(goal.remaining))}
                   </p>
                 </div>
               </div>

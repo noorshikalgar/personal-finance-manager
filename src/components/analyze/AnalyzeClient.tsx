@@ -6,6 +6,7 @@ import { BarChart, Bar, PieChart, Pie, Cell, XAxis, YAxis, CartesianGrid, Toolti
 import { ChartContainer, ChartTooltip, ChartLegend } from '@/components/ui/chart'
 import { BarChart3, Table2 } from 'lucide-react'
 import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 interface Account {
   id: string
@@ -200,21 +201,19 @@ export default function AnalyzeClient() {
           {/* Date Range */}
           <div>
             <label className="block text-sm font-medium text-foreground mb-3">Date From</label>
-            <input
-              type="date"
-              value={fromDate}
-              onChange={(e) => setFromDate(e.target.value)}
-              className="w-full px-3 py-2 border border-border bg-card text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            <DatePicker
+              value={fromDate ? new Date(fromDate) : null}
+              onChange={(date) => setFromDate(date ? date.toISOString().split('T')[0] : '')}
+              placeholder="Select start date"
             />
           </div>
 
           <div>
             <label className="block text-sm font-medium text-foreground mb-3">Date To</label>
-            <input
-              type="date"
-              value={toDate}
-              onChange={(e) => setToDate(e.target.value)}
-              className="w-full px-3 py-2 border border-border bg-card text-foreground rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+            <DatePicker
+              value={toDate ? new Date(toDate) : null}
+              onChange={(date) => setToDate(date ? date.toISOString().split('T')[0] : '')}
+              placeholder="Select end date"
             />
           </div>
         </div>

@@ -6,6 +6,7 @@ import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
 import CategorySelector from '@/components/categories/CategorySelector'
+import { DatePicker } from '@/components/ui/DatePicker'
 
 interface Account {
   id: string
@@ -235,12 +236,10 @@ export default function NewRecurringPage() {
               <label className="block text-sm font-medium text-foreground mb-2">
                 Start Date *
               </label>
-              <input
-                type="date"
-                required
-                value={formData.startDate}
-                onChange={(e) => setFormData({ ...formData, startDate: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              <DatePicker
+                value={formData.startDate ? new Date(formData.startDate) : null}
+                onChange={(date) => setFormData({ ...formData, startDate: date ? date.toISOString().split('T')[0] : '' })}
+                placeholder="Select start date"
               />
             </div>
 
@@ -248,11 +247,10 @@ export default function NewRecurringPage() {
               <label className="block text-sm font-medium text-foreground mb-2">
                 End Date (optional)
               </label>
-              <input
-                type="date"
-                value={formData.endDate}
-                onChange={(e) => setFormData({ ...formData, endDate: e.target.value })}
-                className="w-full px-3 py-2 border border-border rounded-md focus:outline-none focus:ring-2 focus:ring-primary"
+              <DatePicker
+                value={formData.endDate ? new Date(formData.endDate) : null}
+                onChange={(date) => setFormData({ ...formData, endDate: date ? date.toISOString().split('T')[0] : '' })}
+                placeholder="Select end date"
               />
             </div>
           </div>
