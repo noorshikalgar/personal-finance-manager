@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { checkCategoryBudget, checkGoalCompletion } from '@/lib/notifications'
+import { checkCategoryBudget, checkGoalCompletion, updateReminderOnTransaction } from '@/lib/notifications'
 
 // GET transactions with filtering and pagination
 export async function GET(req: NextRequest) {
@@ -238,6 +238,13 @@ export async function POST(req: NextRequest) {
           console.error('Failed to check goal completion:', error);
         });
       }
+    }
+
+    // Update reminder if linked
+    if (reminderId) {
+      await updateReminderOnTransaction(reminderId, new Date(date)).catch((error) => {
+        console.error('Failed to update reminder:', error);
+      });
     }
 
     return NextResponse.json(result, { status: 201 })

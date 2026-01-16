@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
+import { updateReminderOnTransaction } from '@/lib/notifications'
 
 // PATCH update transaction
 export async function PATCH(
@@ -45,6 +46,7 @@ export async function PATCH(
         where: { id },
         data: {
           categoryId: body.categoryId !== undefined ? body.categoryId : undefined,
+          reminderId: body.reminderId !== undefined ? body.reminderId : undefined,
           date: body.date ? new Date(body.date) : undefined,
           amount: body.amount ? parseFloat(body.amount) : undefined,
           type: body.type,
@@ -85,6 +87,16 @@ export async function PATCH(
 
       return transaction
     })
+
+    // Update reminder if linked (either new link or existing link with date change)
+    const finalReminderId = body.reminderId !== undefined ? body.reminderId : existingTransaction.reminderId;
+    const finalDate = body.date ? new Date(body.date) : existingTransaction.date;
+    
+    if (finalReminderId) {
+      await updateReminderOnTransaction(finalReminderId, finalDate).catch((error) => {
+        console.error('Failed to update reminder:', error);
+      });
+    }
 
     return NextResponse.json(result)
   } catch (error) {

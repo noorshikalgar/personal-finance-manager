@@ -273,3 +273,135 @@ export async function checkGoalCompletion(goalId: string, userId: string) {
     throw error;
   }
 }
+
+/**
+ * Update reminder when a transaction is linked to it
+ * Automatically calculates and sets the next due date based on cycle
+ * 
+ * Smart Logic:
+ * - Calculates the previous cycle's due date
+ * - Only accepts transactions for the CURRENT cycle (between previous and future due dates)
+ * - Rejects historical payments from old cycles
+ * - Accepts early payments (before due date)
+ * - Accepts late payments (after due date)
+ * - Always calculates next date from current next date (not transaction date) for consistency
+ */
+export async function updateReminderOnTransaction(reminderId: string, transactionDate: Date) {
+  try {
+    const reminder = await prisma.reminder.findUnique({
+      where: { id: reminderId },
+    });
+
+    if (!reminder) {
+      return null;
+    }
+
+    const txDate = new Date(transactionDate);
+    const currentNextDate = new Date(reminder.nextDate);
+
+    // Calculate the PREVIOUS next date (one cycle before current)
+    const previousNextDate = new Date(currentNextDate);
+    
+    switch (reminder.cycle) {
+      case 'DAILY':
+        previousNextDate.setDate(previousNextDate.getDate() - 1);
+        break;
+      case 'WEEKLY':
+        previousNextDate.setDate(previousNextDate.getDate() - 7);
+        break;
+      case 'MONTHLY':
+        previousNextDate.setMonth(previousNextDate.getMonth() - 1);
+        break;
+      case 'QUARTERLY':
+        previousNextDate.setMonth(previousNextDate.getMonth() - 3);
+        break;
+      case 'HALF_YEARLY':
+        previousNextDate.setMonth(previousNextDate.getMonth() - 6);
+        break;
+      case 'YEARLY':
+        previousNextDate.setFullYear(previousNextDate.getFullYear() - 1);
+        break;
+      case 'CUSTOM':
+        if (reminder.customCycleDays) {
+          previousNextDate.setDate(previousNextDate.getDate() - reminder.customCycleDays);
+        }
+        break;
+    }
+
+    // Only update if transaction is for the CURRENT cycle
+    // Transaction must be AFTER the previous cycle's due date
+    // This handles:
+    // ✓ Early payments (Dec 12, 2025 for Jan 15, 2026 due)
+    // ✓ On-time payments (Jan 15, 2026)
+    // ✓ Late payments (Mar 10, 2026 for Jan 15, 2026 due)
+    // ✗ Historical payments (Jan 15, 2025 for Jan 15, 2026 due - this is from PREVIOUS cycle)
+    if (txDate > previousNextDate) {
+      // Calculate NEW next date by adding one cycle to CURRENT next date
+      // This ensures consistency - always moves forward one cycle regardless of payment timing
+      let newNextDate = new Date(currentNextDate);
+
+      switch (reminder.cycle) {
+        case 'DAILY':
+          newNextDate.setDate(newNextDate.getDate() + 1);
+          break;
+        case 'WEEKLY':
+          newNextDate.setDate(newNextDate.getDate() + 7);
+          break;
+        case 'MONTHLY':
+          newNextDate.setMonth(newNextDate.getMonth() + 1);
+          break;
+        case 'QUARTERLY':
+          newNextDate.setMonth(newNextDate.getMonth() + 3);
+          break;
+        case 'HALF_YEARLY':
+          newNextDate.setMonth(newNextDate.getMonth() + 6);
+          break;
+        case 'YEARLY':
+          newNextDate.setFullYear(newNextDate.getFullYear() + 1);
+          break;
+        case 'CUSTOM':
+          if (reminder.customCycleDays) {
+            newNextDate.setDate(newNextDate.getDate() + reminder.customCycleDays);
+          }
+          break;
+      }
+
+      // Determine new status
+      const now = new Date();
+      let newStatus = 'UPCOMING';
+      if (newNextDate < now) {
+        newStatus = 'OVERDUE';
+      } else if (newNextDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)) {
+        newStatus = 'UPCOMING';
+      }
+
+      // Update reminder
+      await prisma.reminder.update({
+        where: { id: reminderId },
+        data: {
+          lastDate: txDate,
+          nextDate: newNextDate,
+          status: newStatus,
+        },
+      });
+
+      return { 
+        lastDate: txDate, 
+        nextDate: newNextDate, 
+        status: newStatus,
+        message: 'Reminder updated successfully'
+      };
+    }
+
+    // Transaction is too old (from previous cycle), don't update
+    return { 
+      message: 'Transaction is from a previous cycle and will not update the reminder',
+      previousNextDate,
+      currentNextDate,
+      transactionDate: txDate
+    };
+  } catch (error) {
+    console.error('Failed to update reminder:', error);
+    throw error;
+  }
+}
