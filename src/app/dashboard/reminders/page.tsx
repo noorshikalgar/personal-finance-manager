@@ -4,7 +4,7 @@ import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
 import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
-import { Plus, Bell, Calendar, DollarSign, FileText, AlertCircle } from 'lucide-react'
+import { Plus, Bell, Calendar, DollarSign, AlertCircle } from 'lucide-react'
 import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
 
 interface Reminder {

@@ -17,6 +17,9 @@ export default async function RecurringPage() {
     include: {
       account: true,
       category: true,
+      _count: {
+        select: { transactions: true },
+      },
     },
     orderBy: { createdAt: 'desc' },
   })
@@ -25,6 +28,7 @@ export default async function RecurringPage() {
   const recurringTransactions = recurringTransactionsRaw.map(rec => ({
     ...rec,
     amount: Number(rec.amount),
+    transactionCount: rec._count.transactions,
     account: {
       ...rec.account,
       monthlyIncome: rec.account.monthlyIncome ? Number(rec.account.monthlyIncome) : null,

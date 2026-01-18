@@ -8,13 +8,6 @@ import { ArrowLeft, Loader2 } from 'lucide-react';
 import { useAmountVisibility } from '@/contexts/AmountVisibilityContext';
 import { DatePicker } from '@/components/ui/DatePicker';
 
-type Category = {
-  id: string
-  name: string
-  color: string | null
-  goalId: string | null
-}
-
 const GOAL_CATEGORIES = [
   { value: 'SAVINGS', label: 'Savings', icon: '💰' },
   { value: 'DEBT_PAYOFF', label: 'Debt Payoff', icon: '📉' },
@@ -32,6 +25,7 @@ interface Goal {
   title: string;
   description?: string;
   category: string;
+  progressMode: string;
   targetAmount: number;
   currentAmount: number;
   status: string;
@@ -46,39 +40,14 @@ export default function EditGoalPage() {
   const [loading, setLoading] = useState(true);
   const [saving, setSaving] = useState(false);
   const [error, setError] = useState<string | null>(null);
-  const [categories, setCategories] = useState<Category[]>([]);
-  const [selectedCategories, setSelectedCategories] = useState<string[]>([]);
 
   const [formData, setFormData] = useState<Goal | null>(null);
 
   useEffect(() => {
     if (!goalId) return;
     fetchGoal();
-    fetchCategories();
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goalId]);
-
-  const fetchCategories = async () => {
-    try {
-      const res = await fetch('/api/categories');
-      if (res.ok) {
-        const data = await res.json();
-        setCategories(data);
-        // Set initially selected categories (those linked to this goal)
-        const linkedCats = data.filter((cat: Category) => cat.goalId === goalId);
-        setSelectedCategories(linkedCats.map((cat: Category) => cat.id));
-      }
-    } catch (err) {
-      console.error('Failed to fetch categories:', err);
-    }
-  };
-
-  const toggleCategory = (categoryId: string) => {
-    setSelectedCategories(prev => 
-      prev.includes(categoryId) 
-        ? prev.filter(id => id !== categoryId)
-        : [...prev, categoryId]
-    );
-  };
 
   const fetchGoal = async () => {
     try {
@@ -126,11 +95,11 @@ export default function EditGoalPage() {
         title: formData.title,
         description: formData.description,
         category: formData.category,
+        progressMode: formData.progressMode,
         targetAmount: parseFloat(String(formData.targetAmount)),
         currentAmount: parseFloat(String(formData.currentAmount)),
         status: formData.status,
         deadline: formData.deadline ? new Date(formData.deadline).toISOString() : undefined,
-        categoryIds: selectedCategories,
       };
 
       const res = await fetch(`/api/goals/${goalId}`, {
@@ -269,7 +238,7 @@ export default function EditGoalPage() {
               <label className="block text-sm font-medium text-foreground mb-1.5">Deadline (Optional)</label>
               <DatePicker
                 value={formData.deadline ? new Date(formData.deadline) : null}
-                onChange={(date) => handleChange({ target: { name: 'deadline', value: date ? date.toISOString().split('T')[0] : '' } } as any)}
+                onChange={(date) => setFormData(prev => prev ? { ...prev, deadline: date ? date.toISOString().split('T')[0] : '' } : null)}
                 placeholder="Select deadline"
               />
             </div>
@@ -322,41 +291,31 @@ export default function EditGoalPage() {
           </div>
         </div>
 
-        {/* Linked Categories Card */}
+        {/* Progress Mode Card */}
         <div className="bg-card border border-border rounded-lg p-5 space-y-4">
           <div>
-            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Linked Categories</h2>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Progress Tracking</h2>
             <p className="text-xs text-muted-foreground mt-1">
-              Link categories to auto-track spending/income towards this goal
+              Choose how transactions affect this goal
             </p>
           </div>
           
-          {categories.length === 0 ? (
-            <div className="text-center py-6 text-sm text-muted-foreground">
-              No categories available. Create categories first.
-            </div>
-          ) : (
-            <div className="grid grid-cols-2 sm:grid-cols-3 md:grid-cols-4 gap-2">
-              {categories.map(cat => (
-                <button
-                  key={cat.id}
-                  type="button"
-                  onClick={() => toggleCategory(cat.id)}
-                  className={`p-2 rounded-lg border text-xs font-medium transition-all flex items-center gap-2 ${
-                    selectedCategories.includes(cat.id)
-                      ? 'border-green-500 bg-green-500/10 text-green-700 dark:text-green-400'
-                      : 'border-border bg-background text-foreground hover:bg-muted'
-                  }`}
-                >
-                  <div 
-                    className="w-2.5 h-2.5 rounded-full flex-shrink-0" 
-                    style={{ backgroundColor: cat.color || '#6B7280' }}
-                  />
-                  <span className="truncate">{cat.name}</span>
-                </button>
-              ))}
-            </div>
-          )}
+          <div>
+            <label className="block text-sm font-medium text-foreground mb-1.5">Progress Mode</label>
+            <select
+              name="progressMode"
+              value={formData.progressMode}
+              onChange={handleChange}
+              className="w-full px-3 py-2 text-sm rounded-lg border border-border bg-background text-foreground focus:outline-none focus:ring-2 focus:ring-primary"
+            >
+              <option value="INCOME_ADDS">💰 Income Adds to Progress (Savings Goals)</option>
+              <option value="EXPENSE_ADDS">📉 Expense Adds to Progress (Debt Payoff Goals)</option>
+            </select>
+            <p className="text-xs text-muted-foreground mt-2">
+              <span className="font-medium">Income Adds:</span> For savings, vacation funds, emergency funds. Income transactions increase progress.<br/>
+              <span className="font-medium">Expense Adds:</span> For debt payoff, bill payments. Expense transactions increase progress.
+            </p>
+          </div>
         </div>
 
         {/* Action Buttons */}

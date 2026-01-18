@@ -8,7 +8,6 @@ import {
   ArrowLeft,
   Edit,
   Trash2,
-  Calendar,
   DollarSign,
   FileText,
   Upload,
@@ -16,6 +15,7 @@ import {
   X,
   BarChart3,
 } from 'lucide-react'
+import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
 
 interface Reminder {
   id: string
@@ -57,7 +57,7 @@ interface Reminder {
 
 export default function ReminderDetailPage({ params }: { params: Promise<{ id: string }> }) {
   const router = useRouter()
-  const { formatAmount, currency } = useAmountVisibility()
+  const { formatAmount } = useAmountVisibility()
   const [reminderId, setReminderId] = useState<string | null>(null)
   const [reminder, setReminder] = useState<Reminder | null>(null)
   const [loading, setLoading] = useState(true)
@@ -70,6 +70,7 @@ export default function ReminderDetailPage({ params }: { params: Promise<{ id: s
       setReminderId(p.id)
       fetchReminder(p.id)
     })
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function fetchReminder(id: string) {
@@ -294,12 +295,12 @@ export default function ReminderDetailPage({ params }: { params: Promise<{ id: s
                 <div>
                   <p className="text-sm text-muted-foreground">Total Spent</p>
                   <p className="text-2xl font-bold">
-                    {formatCurrency(reminder.transactions.reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0))}
+                    {formatAmount(reminder.transactions.reduce((sum, t) => sum + Math.abs(Number(t.amount)), 0))}
                   </p>
                 </div>
                 <div>
                   <p className="text-sm text-muted-foreground">Average per Occurrence</p>
-                  <p className="font-medium">{formatCurrency(averageSpent)}</p>
+                  <p className="font-medium">{formatAmount(averageSpent)}</p>
                 </div>
                 {reminder.category && (
                   <div>
@@ -339,7 +340,7 @@ export default function ReminderDetailPage({ params }: { params: Promise<{ id: s
                         {formatDate(transaction.date)} · {transaction.category.name}
                       </p>
                     </div>
-                    <p className="text-lg font-bold">{formatCurrency(Math.abs(Number(transaction.amount)))}</p>
+                    <p className="text-lg font-bold">{formatAmount(Math.abs(Number(transaction.amount)))}</p>
                   </div>
                 ))}
               </div>

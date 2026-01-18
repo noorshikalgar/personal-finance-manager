@@ -52,7 +52,7 @@ export default function ExportClient({ userEmail }: ExportClientProps) {
       <div className="grid md:grid-cols-2 gap-6">
         {/* Excel Export */}
         <div className="bg-card rounded-lg shadow-lg overflow-hidden border-2 border-accent">
-          <div className="bg-gradient-to-r from-accent to-accent p-6">
+          <div className="bg-linear-to-r from-accent to-accent p-6">
             <div className="flex items-center justify-center mb-4">
               <div className="h-16 w-16 bg-card rounded-full flex items-center justify-center">
                 <FileSpreadsheet className="h-8 w-8 text-accent" />
@@ -117,7 +117,7 @@ export default function ExportClient({ userEmail }: ExportClientProps) {
 
         {/* JSON Export */}
         <div className="bg-card rounded-lg shadow-lg overflow-hidden border-2 border-primary">
-          <div className="bg-gradient-to-r from-primary to-primary p-6">
+          <div className="bg-linear-to-r from-primary to-primary p-6">
             <div className="flex items-center justify-center mb-4">
               <div className="h-16 w-16 bg-card rounded-full flex items-center justify-center">
                 <FileJson className="h-8 w-8 text-primary" />

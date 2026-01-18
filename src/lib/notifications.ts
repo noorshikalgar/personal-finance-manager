@@ -338,7 +338,7 @@ export async function updateReminderOnTransaction(reminderId: string, transactio
     if (txDate > previousNextDate) {
       // Calculate NEW next date by adding one cycle to CURRENT next date
       // This ensures consistency - always moves forward one cycle regardless of payment timing
-      let newNextDate = new Date(currentNextDate);
+      const newNextDate = new Date(currentNextDate);
 
       switch (reminder.cycle) {
         case 'DAILY':
@@ -368,7 +368,7 @@ export async function updateReminderOnTransaction(reminderId: string, transactio
 
       // Determine new status
       const now = new Date();
-      let newStatus = 'UPCOMING';
+      let newStatus: 'UPCOMING' | 'OVERDUE' = 'UPCOMING';
       if (newNextDate < now) {
         newStatus = 'OVERDUE';
       } else if (newNextDate <= new Date(now.getTime() + 7 * 24 * 60 * 60 * 1000)) {

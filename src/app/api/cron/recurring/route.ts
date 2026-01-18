@@ -65,7 +65,7 @@ export async function POST(req: Request) {
         // Create the transaction in a database transaction
         await prisma.$transaction(async (tx) => {
           // Create transaction
-          await tx.transaction.create({
+          const transaction = await tx.transaction.create({
             data: {
               userId: recurring.userId,
               accountId: recurring.accountId,
@@ -108,6 +108,33 @@ export async function POST(req: Request) {
               lastRunAt: today,
             },
           })
+
+          // Auto-mark planner item as paid if it exists
+          const currentMonth = today.getMonth() + 1
+          const currentYear = today.getFullYear()
+          
+          const planItem = await tx.planItem.findFirst({
+            where: {
+              plan: {
+                userId: recurring.userId,
+                month: currentMonth,
+                year: currentYear,
+              },
+              recurringTransactionId: recurring.id,
+              isPaid: false,
+            },
+          })
+
+          if (planItem) {
+            await tx.planItem.update({
+              where: { id: planItem.id },
+              data: {
+                isPaid: true,
+                paidOn: today,
+                transactionId: transaction.id,
+              },
+            })
+          }
         })
 
         results.processed++

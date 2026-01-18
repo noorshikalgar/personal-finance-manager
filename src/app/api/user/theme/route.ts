@@ -23,7 +23,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Build update data
-    const updateData: any = {}
+    const updateData: Record<string, string> = {}
     if (theme) updateData.theme = theme
     if (accentColor) updateData.accentColor = accentColor
 

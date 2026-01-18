@@ -40,6 +40,7 @@ model User {
   goals         Goal[]
   reminders     Reminder[]
   notifications Notification[]
+  monthlyPlans  MonthlyPlan[]
 }
 
 // ============================================================================
@@ -101,6 +102,7 @@ model Category {
   transactions          Transaction[]
   recurringTransactions RecurringTransaction[]
   reminders             Reminder[]
+  planItems             PlanItem[]
   
   @@unique([userId, name])
   @@index([userId])
@@ -139,6 +141,9 @@ model Transaction {
   // Link to reminder (optional)
   reminderId    String?
   reminder      Reminder? @relation(fields: [reminderId], references: [id], onDelete: SetNull)
+  
+  // Link to planner item (optional)
+  planItem      PlanItem?
   
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
@@ -181,6 +186,7 @@ model RecurringTransaction {
   updatedAt   DateTime @updatedAt
   
   transactions Transaction[] // Generated transactions from this recurring rule
+  planItems    PlanItem[]    // Planner items linked to this recurring transaction
   
   @@index([userId])
   @@index([accountId])
@@ -210,6 +216,11 @@ enum GoalCategory {
   OTHER
 }
 
+enum GoalProgressMode {
+  INCOME_ADDS    // Income transactions increase progress (for savings goals)
+  EXPENSE_ADDS   // Expense transactions increase progress (for debt payoff goals)
+}
+
 model Goal {
   id            String        @id @default(cuid())
   userId        String
@@ -219,6 +230,7 @@ model Goal {
   description   String?
   category      GoalCategory
   status        GoalStatus    @default(ACTIVE)
+  progressMode  GoalProgressMode @default(INCOME_ADDS) // How transactions affect this goal
   
   targetAmount  Decimal       @db.Decimal(12, 2)  // How much to save/pay off
   currentAmount Decimal       @db.Decimal(12, 2)  @default(0) // How much saved so far
@@ -348,4 +360,68 @@ model Notification {
   
   @@index([userId, isRead])
   @@index([createdAt])
+}
+
+// ============================================================================
+// PLANNER - Monthly payment checklist and planning
+// ============================================================================
+
+model MonthlyPlan {
+  id              String        @id @default(cuid())
+  userId          String
+  user            User          @relation(fields: [userId], references: [id], onDelete: Cascade)
+  
+  // Time Period
+  month           Int           // 1-12
+  year            Int           // 2026, etc.
+  
+  // Expected Income (optional)
+  expectedIncome  Float         @default(0)
+  
+  // Relations
+  items           PlanItem[]
+  
+  createdAt       DateTime      @default(now())
+  updatedAt       DateTime      @updatedAt
+  
+  @@unique([userId, month, year])
+  @@index([userId, year, month])
+}
+
+model PlanItem {
+  id              String          @id @default(cuid())
+  planId          String
+  plan            MonthlyPlan     @relation(fields: [planId], references: [id], onDelete: Cascade)
+  
+  // Item details
+  name            String          // "Home Rent", "DTH", "Internet", etc.
+  amount          Float
+  dueDate         DateTime
+  
+  // Status tracking
+  isPaid          Boolean         @default(false)
+  paidOn          DateTime?
+  
+  // Category (optional)
+  categoryId      String?
+  category        Category?       @relation(fields: [categoryId], references: [id], onDelete: SetNull)
+  
+  // Link to transaction (when marked as paid)
+  transactionId   String?         @unique
+  transaction     Transaction?    @relation(fields: [transactionId], references: [id], onDelete: SetNull)
+  
+  // Link to recurring transaction (if imported from recurring)
+  recurringTransactionId  String?
+  recurringTransaction    RecurringTransaction? @relation(fields: [recurringTransactionId], references: [id], onDelete: SetNull)
+  isFromRecurring        Boolean   @default(false)
+  
+  // Additional info
+  notes           String?
+  
+  createdAt       DateTime        @default(now())
+  updatedAt       DateTime        @updatedAt
+  
+  @@index([planId])
+  @@index([isPaid])
+  @@index([dueDate])
 }

@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { updateReminderOnTransaction } from '@/lib/notifications'
+import { updateGoalFromTransaction, reverseGoalFromTransaction } from '@/lib/goals'
 
 // PATCH update transaction
 export async function PATCH(
@@ -88,6 +89,41 @@ export async function PATCH(
       return transaction
     })
 
+    // Handle goal updates if category changed or amount changed
+    const oldCategoryId = existingTransaction.categoryId;
+    const newCategoryId = body.categoryId !== undefined ? body.categoryId : oldCategoryId;
+    const oldType = existingTransaction.type;
+    const newType = body.type || oldType;
+
+    // Only update goals for INCOME/EXPENSE transactions, not ADJUSTMENT
+    const shouldUpdateGoal = (oldType === 'INCOME' || oldType === 'EXPENSE') || (newType === 'INCOME' || newType === 'EXPENSE');
+
+    if (shouldUpdateGoal) {
+      // If category changed, reverse old goal and update new goal
+      if (oldCategoryId !== newCategoryId) {
+        // Reverse old goal if it existed
+        if (oldCategoryId && (oldType === 'INCOME' || oldType === 'EXPENSE')) {
+          await reverseGoalFromTransaction(oldCategoryId, oldType as 'INCOME' | 'EXPENSE', oldAmount).catch((error) => {
+            console.error('Failed to reverse goal from old category:', error);
+          });
+        }
+        // Update new goal if it exists
+        if (newCategoryId && (newType === 'INCOME' || newType === 'EXPENSE')) {
+          await updateGoalFromTransaction(newCategoryId, newType as 'INCOME' | 'EXPENSE', newAmount).catch((error) => {
+            console.error('Failed to update goal from new category:', error);
+          });
+        }
+      } else if (amountDelta !== 0 && newCategoryId && (oldType === 'INCOME' || oldType === 'EXPENSE')) {
+        // Same category but amount changed - reverse old amount and add new amount
+        await reverseGoalFromTransaction(newCategoryId, oldType as 'INCOME' | 'EXPENSE', oldAmount).catch((error) => {
+          console.error('Failed to reverse goal:', error);
+        });
+        await updateGoalFromTransaction(newCategoryId, newType as 'INCOME' | 'EXPENSE', newAmount).catch((error) => {
+          console.error('Failed to update goal:', error);
+        });
+      }
+    }
+
     // Update reminder if linked (either new link or existing link with date change)
     const finalReminderId = body.reminderId !== undefined ? body.reminderId : existingTransaction.reminderId;
     const finalDate = body.date ? new Date(body.date) : existingTransaction.date;
@@ -168,6 +204,17 @@ export async function DELETE(
         })
       }
     })
+
+    // Reverse goal progress if transaction was linked to a category with a goal
+    if (transaction.categoryId) {
+      await reverseGoalFromTransaction(
+        transaction.categoryId,
+        transaction.type as 'INCOME' | 'EXPENSE',
+        Number(transaction.amount)
+      ).catch((error) => {
+        console.error('Failed to reverse goal from deleted transaction:', error);
+      });
+    }
 
     return NextResponse.json({ message: 'Transaction deleted successfully' })
   } catch (error) {

@@ -2,21 +2,15 @@
 
 import { useState, useEffect } from 'react'
 import { useRouter } from 'next/navigation'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import CategorySelector from '@/components/categories/CategorySelector'
 import { DatePicker } from '@/components/ui/DatePicker'
 
-interface Category {
-  id: string
-  name: string
-}
-
 export default function NewReminderPage() {
   const router = useRouter()
   const [loading, setLoading] = useState(false)
-  const [categories, setCategories] = useState<Category[]>([])
   
   const [formData, setFormData] = useState({
     title: '',
@@ -30,19 +24,7 @@ export default function NewReminderPage() {
   })
 
   useEffect(() => {
-    // Fetch categories
-    async function fetchCategories() {
-      try {
-        const response = await fetch('/api/categories')
-        if (response.ok) {
-          const data = await response.json()
-          setCategories(data)
-        }
-      } catch (error) {
-        console.error('Error fetching categories:', error)
-      }
-    }
-    fetchCategories()
+    // Categories are now handled by CategorySelector
   }, [])
 
   async function handleSubmit(e: React.FormEvent) {
@@ -218,8 +200,7 @@ export default function NewReminderPage() {
                       async function refresh() {
                         const response = await fetch('/api/categories')
                         if (response.ok) {
-                          const data = await response.json()
-                          setCategories(data)
+                        await response.json()
                         }
                       }
                       refresh()

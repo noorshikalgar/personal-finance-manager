@@ -14,6 +14,7 @@ type RecurringTransaction = {
   paused: boolean
   lastRunAt: Date | null
   endDate: Date | null
+  transactionCount?: number
   account: {
     name: string
   }
@@ -106,7 +107,7 @@ export default function RecurringList({
               >
                 <div className="bg-card rounded-lg shadow-sm border border-border hover:border-primary hover:shadow-md transition-all overflow-hidden">
                   {/* Header with Icon and Title */}
-                  <div className="flex items-center justify-between p-4 bg-gradient-to-r from-secondary to-secondary border-b border-border">
+                  <div className="flex items-center justify-between p-4 bg-linear-to-r from-secondary to-secondary border-b border-border">
                     <div className="flex items-center gap-3">
                       <div
                         className={`p-2.5 rounded-lg ${
@@ -202,15 +203,22 @@ export default function RecurringList({
                     </div>
 
                     {/* Footer with Last Run and End Date */}
-                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-gray-100">
+                    <div className="flex items-center justify-between mt-3 pt-3 border-t border-border">
                       <div className="text-xs text-muted-foreground">
                         Last Run: <span className="font-medium text-foreground">{formatDate(recurring.lastRunAt)}</span>
                       </div>
-                      {recurring.endDate && (
-                        <div className="text-xs text-muted-foreground">
-                          Ends: <span className="font-medium text-foreground">{formatDate(recurring.endDate)}</span>
-                        </div>
-                      )}
+                      <div className="flex items-center gap-3">
+                        {recurring.transactionCount !== undefined && recurring.transactionCount > 0 && (
+                          <div className="text-xs bg-primary/10 text-primary px-2 py-1 rounded-full font-medium">
+                            {recurring.transactionCount} {recurring.transactionCount === 1 ? 'transaction' : 'transactions'}
+                          </div>
+                        )}
+                        {recurring.endDate && (
+                          <div className="text-xs text-muted-foreground">
+                            Ends: <span className="font-medium text-foreground">{formatDate(recurring.endDate)}</span>
+                          </div>
+                        )}
+                      </div>
                     </div>
                   </div>
                 </div>

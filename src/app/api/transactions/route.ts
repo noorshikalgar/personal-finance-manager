@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
 import { checkCategoryBudget, checkGoalCompletion, updateReminderOnTransaction } from '@/lib/notifications'
+import { updateGoalFromTransaction } from '@/lib/goals'
 
 // GET transactions with filtering and pagination
 export async function GET(req: NextRequest) {
@@ -221,6 +222,11 @@ export async function POST(req: NextRequest) {
 
     // Check budget and goal completion after transaction is created
     if (categoryId) {
+      // Auto-update goal progress
+      await updateGoalFromTransaction(categoryId, type, parseFloat(amount)).catch((error) => {
+        console.error('Failed to update goal from transaction:', error);
+      });
+
       await checkCategoryBudget(categoryId, userId).catch((error) => {
         console.error('Failed to check category budget:', error);
       });

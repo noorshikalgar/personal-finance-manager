@@ -7,6 +7,7 @@ const UpdateGoalSchema = z.object({
   title: z.string().min(1).optional(),
   description: z.string().optional(),
   category: z.enum(['SAVINGS', 'DEBT_PAYOFF', 'EMERGENCY_FUND', 'INVESTMENT', 'VACATION', 'HOME', 'EDUCATION', 'CAR', 'OTHER']).optional(),
+  progressMode: z.enum(['INCOME_ADDS', 'EXPENSE_ADDS']).optional(),
   targetAmount: z.number().positive().optional(),
   currentAmount: z.number().min(0).optional(),
   status: z.enum(['ACTIVE', 'COMPLETED', 'ABANDONED']).optional(),
@@ -35,9 +36,9 @@ export async function PUT(
     }
 
     const body = await req.json();
-    const { categoryIds, ...goalUpdateData } = body;
-    const validatedData = UpdateGoalSchema.parse(goalUpdateData);
+    const validatedData = UpdateGoalSchema.parse(body);
 
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     const updateData: any = {};
     
     // Normalize title if provided
@@ -74,6 +75,7 @@ export async function PUT(
     
     if (validatedData.description !== undefined) updateData.description = validatedData.description;
     if (validatedData.category !== undefined) updateData.category = validatedData.category;
+    if (validatedData.progressMode !== undefined) updateData.progressMode = validatedData.progressMode;
     if (validatedData.targetAmount !== undefined) updateData.targetAmount = validatedData.targetAmount;
     if (validatedData.currentAmount !== undefined) updateData.currentAmount = validatedData.currentAmount;
     if (validatedData.status !== undefined) {
@@ -90,33 +92,6 @@ export async function PUT(
       where: { id: id },
       data: updateData,
     });
-
-    // Update category links if provided
-    if (categoryIds !== undefined && Array.isArray(categoryIds)) {
-      // First, unlink all categories from this goal
-      await prisma.category.updateMany({
-        where: {
-          goalId: id,
-          userId: session.user.id,
-        },
-        data: {
-          goalId: null,
-        },
-      });
-
-      // Then link the selected categories
-      if (categoryIds.length > 0) {
-        await prisma.category.updateMany({
-          where: {
-            id: { in: categoryIds },
-            userId: session.user.id,
-          },
-          data: {
-            goalId: id,
-          },
-        });
-      }
-    }
 
     return NextResponse.json({
       goal: {

@@ -3,11 +3,20 @@
 import { useState } from 'react'
 import { useRouter } from 'next/navigation'
 import { Button } from '@/components/ui/button'
-import { ArrowLeft, Save, Pause, Play, Trash2, Calendar } from 'lucide-react'
+import { ArrowLeft, Save, Pause, Play, Trash2, Calendar, TrendingUp, TrendingDown, History } from 'lucide-react'
 import type { AccountWithNumbers, CategoryWithNumbers } from '@/types'
 import Link from 'next/link'
 import CategorySelector from '@/components/categories/CategorySelector'
 import { DatePicker } from '@/components/ui/DatePicker'
+import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
+
+interface TransactionWithNumbers {
+  id: string
+  date: Date
+  amount: number
+  type: string
+  note: string | null
+}
 
 interface RecurringWithNumbers {
   id: string
@@ -22,6 +31,7 @@ interface RecurringWithNumbers {
   linkedToAccountIncome: boolean
   account: AccountWithNumbers
   category: CategoryWithNumbers | null
+  transactions: TransactionWithNumbers[]
 }
 
 interface RecurringDetailsClientProps {
@@ -36,9 +46,11 @@ export default function RecurringDetailsClient({
   categories,
 }: RecurringDetailsClientProps) {
   const router = useRouter()
+  const { formatAmount } = useAmountVisibility()
   const [isEditing, setIsEditing] = useState(false)
   const [loading, setLoading] = useState(false)
   const [showPauseOptions, setShowPauseOptions] = useState(false)
+  const [showHistory, setShowHistory] = useState(false)
 
   const calculateNextRunDate = () => {
     if (recurring.paused) return null
@@ -563,6 +575,89 @@ export default function RecurringDetailsClient({
             </p>
           </div>
         </div>
+      </div>
+
+      {/* Transaction History Section */}
+      <div className="bg-card rounded-lg shadow">
+        <div className="p-6 border-b border-border flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <History className="h-5 w-5 text-primary" />
+            <h2 className="text-xl font-semibold text-foreground">Generated Transactions</h2>
+            <span className="px-2 py-1 bg-primary/10 text-primary rounded-full text-xs font-medium">
+              {recurring.transactions.length}
+            </span>
+          </div>
+          <Button
+            variant="outline"
+            size="sm"
+            onClick={() => setShowHistory(!showHistory)}
+          >
+            {showHistory ? 'Hide' : 'Show'} History
+          </Button>
+        </div>
+
+        {showHistory && (
+          <div className="p-6">
+            {recurring.transactions.length === 0 ? (
+              <div className="text-center py-12">
+                <Calendar className="mx-auto h-12 w-12 text-muted-foreground mb-3" />
+                <p className="text-muted-foreground">No transactions generated yet</p>
+                <p className="text-sm text-muted-foreground mt-1">
+                  Transactions will be created automatically on day {recurring.dayOfMonth} each month
+                </p>
+              </div>
+            ) : (
+              <div className="space-y-3">
+                {recurring.transactions.map((transaction) => (
+                  <Link
+                    key={transaction.id}
+                    href={`/dashboard/transactions?highlight=${transaction.id}`}
+                    className="block p-4 rounded-lg border border-border hover:border-primary hover:shadow-md transition-all bg-background"
+                  >
+                    <div className="flex items-center justify-between">
+                      <div className="flex items-center gap-3">
+                        <div className={`p-2 rounded-lg ${
+                          transaction.type === 'INCOME'
+                            ? 'bg-accent/20 text-accent'
+                            : 'bg-destructive/20 text-destructive'
+                        }`}>
+                          {transaction.type === 'INCOME' ? (
+                            <TrendingUp className="h-4 w-4" />
+                          ) : (
+                            <TrendingDown className="h-4 w-4" />
+                          )}
+                        </div>
+                        <div>
+                          <p className="font-medium text-foreground">
+                            {transaction.note || 'Transaction'}
+                          </p>
+                          <p className="text-xs text-muted-foreground">
+                            {new Date(transaction.date).toLocaleDateString('en-US', {
+                              year: 'numeric',
+                              month: 'long',
+                              day: 'numeric',
+                            })}
+                          </p>
+                        </div>
+                      </div>
+                      <div className={`text-lg font-bold ${
+                        transaction.type === 'INCOME' ? 'text-accent' : 'text-destructive'
+                      }`}>
+                        {transaction.type === 'INCOME' ? '+' : '-'}{formatAmount(Math.abs(transaction.amount))}
+                      </div>
+                    </div>
+                  </Link>
+                ))}
+
+                {recurring.transactions.length >= 50 && (
+                  <p className="text-center text-sm text-muted-foreground mt-4">
+                    Showing last 50 transactions
+                  </p>
+                )}
+              </div>
+            )}
+          </div>
+        )}
       </div>
     </div>
   )

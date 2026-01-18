@@ -14,10 +14,11 @@ export interface DatePickerProps {
   placeholder?: string
   minDate?: Date
   maxDate?: Date
+  defaultMonth?: Date
   className?: string
 }
 
-export function DatePicker({ value, onChange, placeholder = "Pick a date", minDate, maxDate, className }: DatePickerProps) {
+export function DatePicker({ value, onChange, placeholder = "Pick a date", minDate, maxDate, defaultMonth, className }: DatePickerProps) {
   const [open, setOpen] = React.useState(false)
 
   const handleSelect = (date: Date | undefined) => {
@@ -45,6 +46,7 @@ export function DatePicker({ value, onChange, placeholder = "Pick a date", minDa
           mode="single"
           selected={value || undefined}
           onSelect={handleSelect}
+          defaultMonth={defaultMonth}
           disabled={(date) =>
             (minDate && date < minDate) || (maxDate && date > maxDate) || false
           }

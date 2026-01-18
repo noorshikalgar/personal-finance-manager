@@ -152,9 +152,9 @@ export default function NotificationBell() {
       {/* Bell Icon */}
       <button
         onClick={() => setShowDropdown(!showDropdown)}
-        className="relative p-2 rounded-lg hover:bg-gray-100 dark:hover:bg-gray-800 transition-colors"
+        className="relative p-2 rounded-lg hover:bg-muted transition-colors"
       >
-        <Bell className="h-5 w-5 text-gray-700 dark:text-gray-300" />
+        <Bell className="h-5 w-5 text-muted-foreground" />
         {unreadCount > 0 && (
           <span className="absolute top-0 right-0 inline-flex items-center justify-center px-2 py-1 text-xs font-bold leading-none text-white transform translate-x-1/2 -translate-y-1/2 bg-red-500 rounded-full">
             {unreadCount > 99 ? '99+' : unreadCount}

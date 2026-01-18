@@ -20,6 +20,10 @@ export default async function RecurringDetailsPage({ params }: PageProps) {
     include: {
       account: true,
       category: true,
+      transactions: {
+        orderBy: { date: 'desc' },
+        take: 50, // Last 50 generated transactions
+      },
     },
   })
 
@@ -42,6 +46,10 @@ export default async function RecurringDetailsPage({ params }: PageProps) {
   const recurringWithNumbers = {
     ...recurring,
     amount: parseFloat(recurring.amount.toString()),
+    transactions: recurring.transactions.map(t => ({
+      ...t,
+      amount: parseFloat(t.amount.toString()),
+    })),
     account: {
       ...recurring.account,
       monthlyIncome: recurring.account.monthlyIncome

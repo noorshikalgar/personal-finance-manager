@@ -22,7 +22,8 @@ import {
   Repeat,
   FolderTree,
   Target,
-  Bell
+  Bell,
+  Calendar
 } from 'lucide-react'
 import { useState, useEffect, useRef } from 'react'
 import { useAmountVisibility } from '@/contexts/AmountVisibilityContext'
@@ -39,6 +40,7 @@ const primaryNavItems = [
 ]
 
 const secondaryNavItems = [
+  { href: '/dashboard/planner', label: 'Planner', icon: Calendar },
   { href: '/dashboard/categories', label: 'Categories', icon: FolderTree },
   { href: '/dashboard/recurring', label: 'Recurring', icon: Repeat },
   { href: '/dashboard/goals', label: 'Goals', icon: Target },

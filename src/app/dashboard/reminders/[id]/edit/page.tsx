@@ -6,7 +6,6 @@ import { Card, CardContent } from '@/components/ui/card'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import CategorySelector from '@/components/categories/CategorySelector'
-import { DatePicker } from '@/components/ui/DatePicker'
 
 interface Category {
   id: string
@@ -32,7 +31,6 @@ export default function EditReminderPage({ params }: { params: Promise<{ id: str
   const [reminderId, setReminderId] = useState<string | null>(null)
   const [loading, setLoading] = useState(false)
   const [fetching, setFetching] = useState(true)
-  const [categories, setCategories] = useState<Category[]>([])
   
   const [formData, setFormData] = useState({
     title: '',
@@ -52,8 +50,7 @@ export default function EditReminderPage({ params }: { params: Promise<{ id: str
       try {
         const response = await fetch('/api/categories')
         if (response.ok) {
-          const data = await response.json()
-          setCategories(data)
+          await response.json()
         }
       } catch (error) {
         console.error('Error fetching categories:', error)
@@ -65,6 +62,7 @@ export default function EditReminderPage({ params }: { params: Promise<{ id: str
       setReminderId(p.id)
       fetchReminder(p.id)
     })
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   async function fetchReminder(id: string) {
@@ -288,8 +286,7 @@ export default function EditReminderPage({ params }: { params: Promise<{ id: str
                       async function refresh() {
                         const response = await fetch('/api/categories')
                         if (response.ok) {
-                          const data = await response.json()
-                          setCategories(data)
+                        await response.json()
                         }
                       }
                       refresh()

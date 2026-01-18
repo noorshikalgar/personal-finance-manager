@@ -131,7 +131,7 @@ export default function DashboardOverview({
       </div>
 
       {/* Next Month Projection */}
-      <div className="bg-gradient-to-r from-primary/10 to-accent/10 rounded-lg shadow border border-primary/20">
+      <div className="bg-linear-to-r from-primary/10 to-accent/10 rounded-lg shadow border border-primary/20">
         <div 
           className="flex justify-between items-center p-6 cursor-pointer hover:bg-primary/5"
           onClick={() => setShowProjection(!showProjection)}
