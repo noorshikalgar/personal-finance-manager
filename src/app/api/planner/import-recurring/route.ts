@@ -70,6 +70,19 @@ export async function POST(req: NextRequest) {
             planId: plan!.id,
             recurringTransactionId: recurring.id,
           },
+          include: {
+            category: true,
+            recurringTransaction: {
+              select: {
+                id: true,
+                amount: true,
+                note: true,
+                type: true,
+                dayOfMonth: true,
+                categoryId: true,
+              },
+            },
+          },
         });
 
         if (existing) {
