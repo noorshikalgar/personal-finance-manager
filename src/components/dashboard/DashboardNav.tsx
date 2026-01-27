@@ -71,6 +71,18 @@ export default function DashboardNav({ userEmail }: DashboardNavProps) {
     }
   }, [moreMenuOpen])
 
+  // Lock body scroll when mobile menu is open
+  useEffect(() => {
+    if (mobileMenuOpen) {
+      document.body.style.overflow = 'hidden'
+    } else {
+      document.body.style.overflow = 'unset'
+    }
+    return () => {
+      document.body.style.overflow = 'unset'
+    }
+  }, [mobileMenuOpen])
+
   const handleSignOut = async () => {
     await signOut({ callbackUrl: '/auth/signin' })
   }
@@ -219,49 +231,73 @@ export default function DashboardNav({ userEmail }: DashboardNavProps) {
 
       {/* Mobile menu */}
       {mobileMenuOpen && (
-        <div className="md:hidden border-t border-border bg-background">
-          <div className="px-3 py-3 space-y-1">
-            {[...primaryNavItems, ...secondaryNavItems].map((item) => {
-              const Icon = item.icon || null
-              const isActive = pathname === item.href
-              return (
-                <Link
-                  key={item.href}
-                  href={item.href}
-                  onClick={() => setMobileMenuOpen(false)}
-                  className={`flex items-center px-3 py-2 text-base font-medium rounded-md transition-colors ${
-                    isActive
-                      ? 'text-primary bg-primary/10'
-                      : 'text-card-foreground hover:bg-muted hover:text-foreground'
-                  }`}
-                >
-                  {Icon && <Icon className="h-5 w-5 mr-3" />}
-                  {item.label}
-                </Link>
-              )
-            })}
+        <>
+          {/* Backdrop */}
+          <div
+            className="fixed inset-0 bg-black/50 z-40 md:hidden"
+            onClick={() => setMobileMenuOpen(false)}
+          />
+
+          {/* Slide-in Menu */}
+          <div className="fixed inset-y-0 left-0 w-[280px] bg-card border-r border-border z-50 md:hidden overflow-y-auto shadow-2xl">
+            {/* Header */}
+            <div className="flex items-center p-4 border-b border-border sticky top-0 bg-card">
+              <Link href="/dashboard" className="flex items-center" onClick={() => setMobileMenuOpen(false)}>
+                <div className="h-8 w-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center mr-2">
+                  <span className="text-primary-foreground font-bold text-lg">$</span>
+                </div>
+                <h1 className="text-lg font-bold text-foreground">Finance Tracker</h1>
+              </Link>
+            </div>
+
+            {/* Navigation Links */}
+            <div className="px-3 py-3 space-y-1">
+              {[...primaryNavItems, ...secondaryNavItems].map((item) => {
+                const Icon = item.icon || null
+                const isActive = pathname === item.href
+                return (
+                  <Link
+                    key={item.href}
+                    href={item.href}
+                    onClick={() => setMobileMenuOpen(false)}
+                    className={`flex items-center px-3 py-2.5 text-base font-medium rounded-lg transition-colors ${
+                      isActive
+                        ? 'text-primary bg-primary/10'
+                        : 'text-foreground hover:bg-accent'
+                    }`}
+                  >
+                    {Icon && <Icon className="h-5 w-5 mr-3" />}
+                    {item.label}
+                  </Link>
+                )
+              })}
+            </div>
+
+            {/* Account Section */}
+            <div className="border-t border-border px-3 py-4 mt-4">
+              <p className="text-xs text-muted-foreground uppercase tracking-wide font-semibold px-3 mb-2">Account</p>
+              <p className="text-sm font-medium text-foreground px-3 py-2 truncate">{userEmail}</p>
+              <Link
+                href="/dashboard/settings"
+                onClick={() => setMobileMenuOpen(false)}
+                className="flex items-center w-full px-3 py-2.5 text-base text-foreground hover:bg-accent rounded-lg transition-colors mt-1"
+              >
+                <Settings className="h-5 w-5 mr-3" />
+                Settings
+              </Link>
+              <button
+                onClick={() => {
+                  setMobileMenuOpen(false)
+                  handleSignOut()
+                }}
+                className="flex items-center w-full px-3 py-2.5 text-base text-destructive hover:bg-destructive/10 rounded-lg transition-colors mt-1"
+              >
+                <LogOut className="h-5 w-5 mr-3" />
+                Sign Out
+              </button>
+            </div>
           </div>
-          <div className="border-t border-border px-3 py-3">
-            <p className="text-xs text-muted-foreground uppercase tracking-wide px-1 mb-2">Account</p>
-            <p className="text-sm font-medium text-card-foreground px-3 py-2 truncate">{userEmail}</p>
-            <Link
-              href="/dashboard/settings"
-              onClick={() => setMobileMenuOpen(false)}
-              className="flex items-center w-full px-3 py-2 text-sm text-card-foreground hover:bg-muted rounded-md transition-colors"
-            >
-              <Settings className="h-4 w-4 mr-2" />
-              Settings
-            </Link>
-            <Button
-              onClick={handleSignOut}
-              variant="ghost"
-              className="w-full justify-start text-destructive hover:text-destructive hover:bg-destructive/10 mt-2"
-            >
-              <LogOut className="h-4 w-4 mr-2" />
-              Sign Out
-            </Button>
-          </div>
-        </div>
+        </>
       )}
     </nav>
   )
