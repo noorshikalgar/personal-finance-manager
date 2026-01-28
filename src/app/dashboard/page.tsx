@@ -18,7 +18,7 @@ export default async function DashboardPage() {
   }
 
   // Fetch user to check onboarding status
-  let user = await prisma.user.findUnique({
+  const user = await prisma.user.findUnique({
     where: { id: session.user.id },
   })
 
@@ -119,39 +119,48 @@ export default async function DashboardPage() {
       {/* Will improve and re-enable later */}
       {/* DO NOT SHOW THIS ANYWHERE */}
 
-      <div className="p-6 space-y-6">
-        <div className="flex flex-col gap-4 md:flex-row md:items-center md:justify-between">
-          <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
-          <div className="grid w-full gap-3 sm:auto-cols-fr sm:grid-flow-col md:w-auto">
-            <Link href="/dashboard/transactions/new">
-              <Button className="w-full">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Transaction
-              </Button>
-            </Link>
-            <Link href="/dashboard/accounts/new">
-              <Button variant="outline" className="w-full">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Account
-              </Button>
-            </Link>
-            <Link href="/dashboard/categories">
-              <Button variant="outline" className="w-full">
-                <Plus className="mr-2 h-4 w-4" />
-                Add Category
-              </Button>
-            </Link>
+      <div className="space-y-6">
+        {/* Header Section */}
+        <div className="px-4 pt-6 sm:px-6">
+          <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+            <h1 className="text-3xl font-bold text-foreground">Dashboard</h1>
+            
+            {/* Quick Action Buttons */}
+            <div className="grid grid-cols-3 sm:flex sm:flex-row gap-2 sm:gap-3">
+              <Link href="/dashboard/transactions/new" className="sm:w-auto">
+                <Button className="w-full sm:w-auto h-auto sm:h-10 py-3 sm:py-2 flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
+                  <span className="text-xs sm:text-sm font-medium">Transaction</span>
+                </Button>
+              </Link>
+              <Link href="/dashboard/accounts/new" className="sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto h-auto sm:h-10 py-3 sm:py-2 flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
+                  <span className="text-xs sm:text-sm font-medium">Account</span>
+                </Button>
+              </Link>
+              <Link href="/dashboard/categories" className="sm:w-auto">
+                <Button variant="outline" className="w-full sm:w-auto h-auto sm:h-10 py-3 sm:py-2 flex flex-col sm:flex-row items-center gap-1 sm:gap-2">
+                  <Plus className="h-5 w-5 sm:h-4 sm:w-4" />
+                  <span className="text-xs sm:text-sm font-medium">Category</span>
+                </Button>
+              </Link>
+            </div>
           </div>
         </div>
-        <DashboardOverview
-          accounts={accounts}
-          transactions={transactions}
-          categories={categories}
-          recurringTransactions={recurringTransactions}
-        />
-        <BudgetTracker />
-        <GoalsTracker />
-        <RemindersWidget />
+
+        {/* Content */}
+        <div className="px-4 pb-6 sm:px-6 space-y-6">
+          <DashboardOverview
+            accounts={accounts}
+            transactions={transactions}
+            categories={categories}
+            recurringTransactions={recurringTransactions}
+          />
+          <BudgetTracker />
+          <GoalsTracker />
+          <RemindersWidget />
+        </div>
       </div>
     </>
   )

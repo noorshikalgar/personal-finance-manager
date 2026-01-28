@@ -92,62 +92,76 @@ export default function DashboardOverview({
   return (
     <div className="space-y-6">
       {/* Quick Stats */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <div className="bg-card rounded-lg shadow p-6">
+      <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
+        {/* Total Balance - Highlighted */}
+        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-xl border border-primary/20 p-5 lg:col-span-1">
           <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Total Balance</p>
-              <p className="text-2xl font-bold text-card-foreground mt-1">
+            <div className="flex-1">
+              <p className="text-sm text-muted-foreground font-medium mb-1">Total Balance</p>
+              <p className="text-3xl font-bold text-foreground">
                 {formatAmount(totalBalance)}
               </p>
             </div>
-            <Wallet className="h-8 w-8 text-primary" />
+            <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+              <Wallet className="h-7 w-7 text-primary" />
+            </div>
           </div>
         </div>
 
-        <div className="bg-card rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Money In (This Month)</p>
-              <p className="text-2xl font-bold text-accent mt-1">
-                {formatAmount(monthlyIncome)}
-              </p>
+        {/* Income and Expense - Side by Side on Mobile, Individual Cards on Desktop */}
+        <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 lg:col-span-2 lg:grid-cols-2">
+          <div className="bg-card rounded-xl border border-border p-4 lg:p-5">
+            <div className="flex items-center justify-between lg:flex-row">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-green-500/10 flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5 text-green-500" />
+                  </div>
+                </div>
+                <p className="text-xs lg:text-sm text-muted-foreground mb-1">Money In</p>
+                <p className="text-lg lg:text-2xl font-bold text-green-500">
+                  {formatAmount(monthlyIncome)}
+                </p>
+              </div>
             </div>
-            <TrendingUp className="h-8 w-8 text-accent" />
           </div>
-        </div>
 
-        <div className="bg-card rounded-lg shadow p-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <p className="text-sm text-muted-foreground">Money Out (This Month)</p>
-              <p className="text-2xl font-bold text-destructive mt-1">
-                {formatAmount(monthlyExpenses)}
-              </p>
+          <div className="bg-card rounded-xl border border-border p-4 lg:p-5">
+            <div className="flex items-center justify-between lg:flex-row">
+              <div className="flex-1">
+                <div className="flex items-center gap-2 mb-2">
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-red-500/10 flex items-center justify-center">
+                    <TrendingDown className="h-4 w-4 lg:h-5 lg:w-5 text-red-500" />
+                  </div>
+                </div>
+                <p className="text-xs lg:text-sm text-muted-foreground mb-1">Money Out</p>
+                <p className="text-lg lg:text-2xl font-bold text-red-500">
+                  {formatAmount(monthlyExpenses)}
+                </p>
+              </div>
             </div>
-            <TrendingDown className="h-8 w-8 text-destructive" />
           </div>
         </div>
       </div>
 
       {/* Next Month Projection */}
-      <div className="bg-linear-to-r from-primary/10 to-accent/10 rounded-lg shadow border border-primary/20">
+      <div className="bg-card rounded-xl border border-border overflow-hidden">
         <div 
-          className="flex justify-between items-center p-6 cursor-pointer hover:bg-primary/5"
+          className="flex justify-between items-center p-5 cursor-pointer hover:bg-accent/5 transition-colors border-b border-border"
           onClick={() => setShowProjection(!showProjection)}
         >
-          <h2 className="text-lg font-semibold text-card-foreground">Next Month Projection</h2>
-          {showProjection ? <ChevronUp className="h-5 w-5" /> : <ChevronDown className="h-5 w-5" />}
+          <h2 className="text-lg font-semibold text-foreground">Next Month Projection</h2>
+          {showProjection ? <ChevronUp className="h-5 w-5 text-muted-foreground" /> : <ChevronDown className="h-5 w-5 text-muted-foreground" />}
         </div>
         {showProjection && (
-          <div className="px-6 pb-6 space-y-2 text-sm">
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">Current Balance:</span>
-              <span className="font-medium text-card-foreground">{formatAmount(totalBalance)}</span>
+          <div className="p-5 space-y-3 bg-accent/5">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">Current Balance:</span>
+              <span className="font-semibold text-foreground">{formatAmount(totalBalance)}</span>
             </div>
-            <div className="flex justify-between">
-              <span className="text-muted-foreground">+ Expected Income:</span>
-              <span className="font-medium text-accent">
+            <div className="flex justify-between items-center">
+              <span className="text-sm text-muted-foreground">+ Expected Income:</span>
+              <span className="font-semibold text-green-500">
                 {formatAmount(expectedIncome)}
               </span>
             </div>
