@@ -1,36 +1,51 @@
 'use client'
 
 import { useState, FormEvent, useEffect } from 'react'
-import { useRouter } from 'next/navigation'
+import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { Account, Category } from '@prisma/client'
-import { toast } from 'sonner'
+import { Account, Category, Reminder } from '@prisma/client'
 import CategorySelector from '@/components/categories/CategorySelector'
 import { DatePicker } from '@/components/ui/DatePicker'
 
+type ReminderWithCategory = Reminder & {
+  category: Category | null
+}
+
 export default function NewTransactionPage() {
   const router = useRouter()
+  const searchParams = useSearchParams()
   const [loading, setLoading] = useState(false)
   const [error, setError] = useState('')
   
   const [accounts, setAccounts] = useState<Account[]>([])
-  const [categories, setCategories] = useState<Category[]>([])
-  const [reminders, setReminders] = useState<any[]>([])
+  const [reminders, setReminders] = useState<ReminderWithCategory[]>([])
   
   const [accountId, setAccountId] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [reminderId, setReminderId] = useState('')
-  const [date, setDate] = useState<Date | null>(new Date())
+  const [date, setDate] = useState<Date | null>(null)
   const [amount, setAmount] = useState('')
   const [type, setType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE')
   const [note, setNote] = useState('')
 
   useEffect(() => {
+    // Check for date in URL params
+    const dateParam = searchParams.get('date')
+    if (dateParam) {
+      // Parse date as local time to avoid timezone shifts
+      // dateParam format: YYYY-MM-DD
+      const [year, month, day] = dateParam.split('-').map(Number)
+      setDate(new Date(year, month - 1, day))
+    } else {
+      setDate(new Date())
+    }
+    
     fetchAccounts()
     fetchCategories()
     fetchReminders()
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
   // Refetch reminders when category changes
@@ -38,6 +53,7 @@ export default function NewTransactionPage() {
     if (categoryId) {
       fetchReminders()
     }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId])
 
   const fetchAccounts = async () => {
@@ -50,11 +66,7 @@ export default function NewTransactionPage() {
   }
 
   const fetchCategories = async () => {
-    const res = await fetch('/api/categories')
-    if (res.ok) {
-      const data = await res.json()
-      setCategories(data)
-    }
+    // Intentionally empty - categories are fetched by CategorySelector
   }
 
   const fetchReminders = async () => {
@@ -66,7 +78,7 @@ export default function NewTransactionPage() {
         const allReminders = Array.isArray(data) ? data : []
         // Filter reminders by selected category if categoryId is set
         const filteredReminders = categoryId 
-          ? allReminders.filter((r: any) => r.categoryId === categoryId)
+          ? allReminders.filter((r: ReminderWithCategory) => r.categoryId === categoryId)
           : allReminders
         setReminders(filteredReminders)
       } else {
@@ -121,8 +133,9 @@ export default function NewTransactionPage() {
 
       router.push('/dashboard/transactions')
       router.refresh()
-    } catch (err: any) {
-      setError(err.message || 'An error occurred')
+    } catch (err) {
+      const error = err as Error
+      setError(error.message || 'An error occurred')
     } finally {
       setLoading(false)
     }

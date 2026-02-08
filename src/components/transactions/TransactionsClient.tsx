@@ -2,7 +2,7 @@
 
 import { useEffect, useState } from 'react'
 import { Transaction, Account, Category } from '@prisma/client'
-import { Plus, Search, Filter, Trash2, Edit } from 'lucide-react'
+import { Plus, Search, Filter, Trash2, Edit, CalendarIcon } from 'lucide-react'
 import { DatePicker } from '@/components/ui/DatePicker'
 import Link from 'next/link'
 import { Button } from '@/components/ui/button'
@@ -159,6 +159,12 @@ export default function TransactionsClient() {
             >
               {exportLoading ? 'Exporting...' : 'Export CSV'}
             </Button>
+            <Link href="/dashboard/transactions/calendar">
+              <Button variant="outline">
+                <CalendarIcon className="mr-2 h-4 w-4" />
+                Calendar
+              </Button>
+            </Link>
             <Link href="/dashboard/transactions/new">
               <Button>
                 <Plus className="mr-2 h-4 w-4" />

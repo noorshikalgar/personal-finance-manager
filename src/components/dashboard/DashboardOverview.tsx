@@ -94,7 +94,7 @@ export default function DashboardOverview({
       {/* Quick Stats */}
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
         {/* Total Balance - Highlighted */}
-        <div className="bg-gradient-to-br from-primary/10 via-primary/5 to-transparent rounded-xl border border-primary/20 p-5 lg:col-span-1">
+        <div className="bg-linear-to-br from-primary/10 via-primary/5 to-transparent rounded-xl border border-primary/20 p-5 lg:col-span-1">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm text-muted-foreground font-medium mb-1">Total Balance</p>
@@ -109,7 +109,7 @@ export default function DashboardOverview({
         </div>
 
         {/* Income and Expense - Side by Side on Mobile, Individual Cards on Desktop */}
-        <div className="grid grid-cols-2 lg:grid-cols-1 gap-4 lg:col-span-2 lg:grid-cols-2">
+        <div className="grid grid-cols-2 gap-4 lg:col-span-2 lg:grid-cols-2">
           <div className="bg-card rounded-xl border border-border p-4 lg:p-5">
             <div className="flex items-center justify-between lg:flex-row">
               <div className="flex-1">
