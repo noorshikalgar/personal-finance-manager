@@ -242,9 +242,9 @@ export default function PlannerDetailClient({
         >
           <ArrowLeft className="h-5 w-5" />
         </Button>
-        <div className="flex-1">
-          <h1 className="text-3xl font-bold flex items-center gap-2">
-            <Calendar className="h-8 w-8" />
+        <div className="flex-1 min-w-0">
+          <h1 className="text-2xl sm:text-3xl font-bold flex items-center gap-2">
+            <Calendar className="h-7 w-7 sm:h-8 sm:w-8 shrink-0" />
             {monthName}
           </h1>
           <p className="text-muted-foreground mt-1">
@@ -285,7 +285,7 @@ export default function PlannerDetailClient({
             <p className="text-muted-foreground mb-6">
               Add items to start planning your month
             </p>
-            <div className="flex gap-2">
+            <div className="flex flex-col sm:flex-row gap-2">
               <Button onClick={() => setIsAddDialogOpen(true)}>
                 <Plus className="mr-2 h-4 w-4" />
                 Add Item

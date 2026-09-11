@@ -289,21 +289,22 @@ export default function PlannerClient({
   return (
     <div className="space-y-6">
       {/* Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex flex-col gap-4 sm:flex-row sm:items-center sm:justify-between">
         <div>
-          <h1 className="text-3xl font-bold text-foreground">Monthly Planner</h1>
+          <h1 className="text-2xl sm:text-3xl font-bold text-foreground">Monthly Planner</h1>
           <p className="text-muted-foreground mt-1">{monthName}</p>
         </div>
-        <div className="flex gap-2">
+        <div className="flex flex-wrap gap-2">
           <Button
             variant="outline"
             onClick={() => setIsImportDialogOpen(true)}
             disabled={recurringTransactions.length === 0}
+            className="flex-1 sm:flex-none"
           >
             <Download className="mr-2 h-4 w-4" />
             Import Recurring
           </Button>
-          <Button onClick={() => setIsAddDialogOpen(true)}>
+          <Button onClick={() => setIsAddDialogOpen(true)} className="flex-1 sm:flex-none">
             <Plus className="mr-2 h-4 w-4" />
             Add Item
           </Button>
@@ -375,7 +376,7 @@ export default function PlannerClient({
                 <p className="text-muted-foreground mb-4">
                   Add items manually or import from your recurring transactions
                 </p>
-                <div className="flex gap-2 justify-center">
+                <div className="flex flex-col sm:flex-row gap-2 justify-center">
                   <Button onClick={() => setIsAddDialogOpen(true)}>
                     <Plus className="mr-2 h-4 w-4" />
                     Add Item

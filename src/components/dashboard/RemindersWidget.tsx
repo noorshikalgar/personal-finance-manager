@@ -64,8 +64,8 @@ export default function RemindersWidget() {
 
   return (
     <Card>
-      <CardHeader className="flex flex-row items-center justify-between pb-3">
-        <CardTitle className="text-lg font-medium flex items-center gap-2">
+      <CardHeader className="flex flex-col gap-2 sm:flex-row sm:items-center sm:justify-between pb-3">
+        <CardTitle className="text-lg font-medium flex flex-wrap items-center gap-2">
           <Bell className="w-5 h-5" />
           Upcoming Reminders
           {overdueCount > 0 && (
@@ -78,6 +78,7 @@ export default function RemindersWidget() {
           variant="ghost"
           size="sm"
           onClick={() => router.push('/dashboard/reminders')}
+          className="self-start sm:self-auto"
         >
           View All
         </Button>
@@ -87,15 +88,15 @@ export default function RemindersWidget() {
           {reminders.map((reminder) => (
             <div
               key={reminder.id}
-              className="flex justify-between items-start p-3 border rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors"
+              className="flex justify-between items-start gap-2 p-3 border rounded-lg hover:bg-secondary/50 cursor-pointer transition-colors"
               onClick={() => router.push(`/dashboard/reminders/${reminder.id}`)}
             >
-              <div className="flex-1">
+              <div className="flex-1 min-w-0">
                 <div className="flex items-center gap-2">
                   {reminder.status === 'OVERDUE' && (
                     <AlertCircle className="w-4 h-4 text-red-500 shrink-0" />
                   )}
-                  <p className="font-medium">{reminder.title}</p>
+                  <p className="font-medium truncate">{reminder.title}</p>
                 </div>
                 <div className="flex items-center gap-2 text-sm text-muted-foreground mt-1">
                   <Calendar className="w-3 h-3" />
@@ -109,7 +110,7 @@ export default function RemindersWidget() {
                 </div>
               </div>
               {reminder.isExpenseRelated && reminder.estimatedCost && (
-                <p className="text-sm font-medium text-muted-foreground">
+                <p className="text-sm font-medium text-muted-foreground shrink-0">
                   ~${Number(reminder.estimatedCost).toFixed(2)}
                 </p>
               )}
