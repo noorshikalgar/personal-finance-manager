@@ -368,7 +368,7 @@
 }
 
 .fullcalendar-wrapper .fc {
-  font-family: var(--font-geist-sans), system-ui, -apple-system, sans-serif;
+  font-family: var(--font-body), system-ui, -apple-system, sans-serif;
 }
 
 /* Calendar structure */

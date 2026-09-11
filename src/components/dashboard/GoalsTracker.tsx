@@ -54,10 +54,10 @@ export function GoalsTracker() {
   };
 
   const getProgressColor = (progress: number) => {
-    if (progress >= 100) return 'bg-accent';
-    if (progress >= 80) return 'bg-amber-500';
-    if (progress >= 50) return 'bg-blue-500';
-    return 'bg-primary';
+    if (progress >= 100) return 'bg-income';
+    if (progress >= 80) return 'bg-warning';
+    if (progress >= 50) return 'bg-primary';
+    return 'bg-primary/60';
   };
 
   const getCategoryColor = (category: string) => {
@@ -80,7 +80,7 @@ export function GoalsTracker() {
 
   if (loading) {
     return (
-      <div className="bg-card border border-border rounded-lg p-6 space-y-4">
+      <div className="bg-card border border-border/60 rounded-surface shadow-elevation-1 p-6 space-y-4">
         <div className="flex items-center justify-between">
           <div>
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -101,7 +101,7 @@ export function GoalsTracker() {
 
   if (goals.length === 0) {
     return (
-      <div className="bg-card border border-border rounded-lg p-6">
+      <div className="bg-card border border-border/60 rounded-surface shadow-elevation-1 p-6">
         <div className="flex items-center justify-between mb-6">
           <div>
             <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -123,7 +123,7 @@ export function GoalsTracker() {
   }
 
   return (
-    <div className="bg-card border border-border rounded-lg p-6">
+    <div className="bg-card border border-border/60 rounded-surface shadow-elevation-1 p-6">
       <div className="flex items-center justify-between mb-6">
         <div>
           <h2 className="text-lg font-semibold text-foreground flex items-center gap-2">
@@ -141,7 +141,7 @@ export function GoalsTracker() {
 
       <div className="space-y-4">
         {activeGoals.map(goal => (
-          <div key={goal.id} className="bg-background/50 border border-border rounded-lg p-4 space-y-3">
+          <div key={goal.id} className="bg-background/50 border border-border/60 rounded-md p-4 space-y-3">
             <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
               <div className="min-w-0">
                 <h3 className="font-medium text-foreground truncate">{goal.title}</h3>
@@ -164,10 +164,10 @@ export function GoalsTracker() {
                 </div>
               </div>
               <div className="text-left sm:text-right shrink-0">
-                <div className="text-sm font-semibold text-foreground">
+                <div className="font-amount text-sm font-semibold text-foreground">
                   ${Number(goal.currentAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
-                <div className="text-xs text-muted-foreground">
+                <div className="font-amount text-xs text-muted-foreground">
                   of ${Number(goal.targetAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
               </div>
@@ -185,7 +185,7 @@ export function GoalsTracker() {
               <span className="text-xs text-muted-foreground">
                 {goal.progress.toFixed(1)}% complete
               </span>
-              <span className="text-xs font-medium">
+              <span className="font-amount text-xs font-medium">
                 {goal.remaining > 0 ? `$${Number(goal.remaining).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })} remaining` : 'Goal reached! 🎉'}
               </span>
             </div>

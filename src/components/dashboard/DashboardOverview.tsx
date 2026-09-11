@@ -89,53 +89,104 @@ export default function DashboardOverview({
   
   const projectedBalance = totalBalance + expectedIncome - expectedExpenses
 
+  // Cumulative net-flow-by-day sparkline for the current month, as a quick
+  // visual trend indicator on the balance hero tile (not a full balance
+  // history - just this month's transactions, running total).
+  const dailyNet = new Map<string, number>()
+  for (const t of transactions) {
+    if (t.type !== 'INCOME' && t.type !== 'EXPENSE') continue
+    const key = new Date(t.date).toISOString().slice(0, 10)
+    dailyNet.set(key, (dailyNet.get(key) || 0) + Number(t.amount))
+  }
+  const sortedDays = Array.from(dailyNet.keys()).sort()
+  const sparklinePoints = sortedDays.reduce<number[]>((acc, day) => {
+    const previous = acc.length > 0 ? acc[acc.length - 1] : 0
+    acc.push(previous + dailyNet.get(day)!)
+    return acc
+  }, [])
+  const hasSparkline = sparklinePoints.length >= 2
+
+  const sparklinePath = (() => {
+    if (!hasSparkline) return ''
+    const w = 200
+    const h = 40
+    const pad = 3
+    const min = Math.min(...sparklinePoints)
+    const max = Math.max(...sparklinePoints)
+    const range = max - min || 1
+    const stepX = (w - pad * 2) / (sparklinePoints.length - 1)
+    return sparklinePoints
+      .map((v, i) => {
+        const x = pad + i * stepX
+        const y = h - pad - ((v - min) / range) * (h - pad * 2)
+        return `${i === 0 ? 'M' : 'L'}${x.toFixed(1)},${y.toFixed(1)}`
+      })
+      .join(' ')
+  })()
+
   return (
     <div className="space-y-6">
       {/* Quick Stats */}
       <div className="grid gap-4 grid-cols-1 lg:grid-cols-3">
         {/* Total Balance - Highlighted */}
-        <div className="bg-linear-to-br from-primary/10 via-primary/5 to-transparent rounded-xl border border-primary/20 p-5 lg:col-span-1">
+        <div className="relative overflow-hidden bg-linear-to-br from-primary/15 via-primary/5 to-transparent rounded-surface border border-primary/20 shadow-elevation-2 p-5 lg:col-span-1">
           <div className="flex items-center justify-between">
             <div className="flex-1">
               <p className="text-sm text-muted-foreground font-medium mb-1">Total Balance</p>
-              <p className="text-3xl font-bold text-foreground">
+              <p className="font-amount text-3xl font-semibold text-foreground">
                 {formatAmount(totalBalance)}
               </p>
             </div>
-            <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center">
+            <div className="w-14 h-14 rounded-full bg-primary/20 flex items-center justify-center shrink-0">
               <Wallet className="h-7 w-7 text-primary" />
             </div>
           </div>
+          {hasSparkline && (
+            <div className="mt-4 text-primary">
+              <svg viewBox="0 0 200 40" className="w-full h-8" preserveAspectRatio="none" role="img" aria-label="Cumulative net cash flow trend for this month">
+                <path
+                  d={sparklinePath}
+                  fill="none"
+                  stroke="currentColor"
+                  strokeWidth="2"
+                  strokeLinecap="round"
+                  strokeLinejoin="round"
+                  opacity="0.85"
+                />
+              </svg>
+              <p className="text-[11px] text-muted-foreground mt-1">Net cash flow this month</p>
+            </div>
+          )}
         </div>
 
         {/* Income and Expense - Side by Side on Mobile, Individual Cards on Desktop */}
         <div className="grid grid-cols-2 gap-4 lg:col-span-2 lg:grid-cols-2">
-          <div className="bg-card rounded-xl border border-border p-4 lg:p-5">
+          <div className="bg-card rounded-surface border border-border/60 shadow-elevation-1 p-4 lg:p-5">
             <div className="flex items-center justify-between lg:flex-row">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-green-500/10 flex items-center justify-center">
-                    <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5 text-green-500" />
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-income/10 flex items-center justify-center">
+                    <TrendingUp className="h-4 w-4 lg:h-5 lg:w-5 text-income" />
                   </div>
                 </div>
                 <p className="text-xs lg:text-sm text-muted-foreground mb-1">Money In</p>
-                <p className="text-lg lg:text-2xl font-bold text-green-500">
+                <p className="font-amount text-lg lg:text-2xl font-semibold text-income">
                   {formatAmount(monthlyIncome)}
                 </p>
               </div>
             </div>
           </div>
 
-          <div className="bg-card rounded-xl border border-border p-4 lg:p-5">
+          <div className="bg-card rounded-surface border border-border/60 shadow-elevation-1 p-4 lg:p-5">
             <div className="flex items-center justify-between lg:flex-row">
               <div className="flex-1">
                 <div className="flex items-center gap-2 mb-2">
-                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-red-500/10 flex items-center justify-center">
-                    <TrendingDown className="h-4 w-4 lg:h-5 lg:w-5 text-red-500" />
+                  <div className="w-8 h-8 lg:w-10 lg:h-10 rounded-full bg-expense/10 flex items-center justify-center">
+                    <TrendingDown className="h-4 w-4 lg:h-5 lg:w-5 text-expense" />
                   </div>
                 </div>
                 <p className="text-xs lg:text-sm text-muted-foreground mb-1">Money Out</p>
-                <p className="text-lg lg:text-2xl font-bold text-red-500">
+                <p className="font-amount text-lg lg:text-2xl font-semibold text-expense">
                   {formatAmount(monthlyExpenses)}
                 </p>
               </div>
@@ -145,8 +196,8 @@ export default function DashboardOverview({
       </div>
 
       {/* Next Month Projection */}
-      <div className="bg-card rounded-xl border border-border overflow-hidden">
-        <div 
+      <div className="bg-card rounded-surface border border-border/60 shadow-elevation-1 overflow-hidden">
+        <div
           className="flex justify-between items-center p-5 cursor-pointer hover:bg-accent/5 transition-colors border-b border-border"
           onClick={() => setShowProjection(!showProjection)}
         >
@@ -157,24 +208,24 @@ export default function DashboardOverview({
           <div className="p-5 space-y-3 bg-accent/5">
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">Current Balance:</span>
-              <span className="font-semibold text-foreground">{formatAmount(totalBalance)}</span>
+              <span className="font-amount font-semibold text-foreground">{formatAmount(totalBalance)}</span>
             </div>
             <div className="flex justify-between items-center">
               <span className="text-sm text-muted-foreground">+ Expected Income:</span>
-              <span className="font-semibold text-green-500">
+              <span className="font-amount font-semibold text-income">
                 {formatAmount(expectedIncome)}
               </span>
             </div>
             <div className="flex justify-between">
               <span className="text-muted-foreground">- Recurring Payments:</span>
-              <span className="font-medium text-destructive">
+              <span className="font-amount font-medium text-expense">
                 {formatAmount(expectedExpenses)}
               </span>
             </div>
             <div className="border-t border-border pt-2 mt-2">
               <div className="flex justify-between">
                 <span className="font-semibold text-card-foreground">Projected Balance:</span>
-                <span className={`font-bold text-lg ${projectedBalance >= 0 ? 'text-accent' : 'text-destructive'}`}>
+                <span className={`font-amount font-bold text-lg ${projectedBalance >= 0 ? 'text-income' : 'text-expense'}`}>
                   {formatAmount(projectedBalance)}
                 </span>
               </div>
@@ -185,7 +236,7 @@ export default function DashboardOverview({
 
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Category Spending */}
-        <div className="bg-card rounded-lg shadow">
+        <div className="bg-card rounded-surface border border-border/60 shadow-elevation-1">
           <div className="flex justify-between items-center p-6 border-b border-border">
             <h2 className="text-lg font-semibold text-card-foreground">Category Spending</h2>
             <Link href="/dashboard/categories">
@@ -205,7 +256,7 @@ export default function DashboardOverview({
                   <div key={cat.name}>
                     <div className="flex justify-between text-sm mb-2">
                       <span className="font-medium text-card-foreground">{cat.name}</span>
-                      <span className="text-muted-foreground">
+                      <span className="font-amount text-muted-foreground">
                         {formatAmount(cat.spent)}
                         {cat.budget && ` / ${formatAmount(cat.budget)}`}
                       </span>
@@ -214,7 +265,7 @@ export default function DashboardOverview({
                       {cat.budget ? (
                         <div
                           className={`h-2 rounded-full transition-all ${
-                            cat.percentage > 100 ? 'bg-destructive' : cat.percentage > 80 ? 'bg-amber-500' : 'bg-accent'
+                            cat.percentage > 100 ? 'bg-expense' : cat.percentage > 80 ? 'bg-warning' : 'bg-accent'
                           }`}
                           style={{ width: `${Math.min(cat.percentage, 100)}%` }}
                         />
@@ -233,7 +284,7 @@ export default function DashboardOverview({
         </div>
 
         {/* Upcoming Recurring */}
-        <div className="bg-card rounded-lg shadow">
+        <div className="bg-card rounded-surface border border-border/60 shadow-elevation-1">
           <div className="flex justify-between items-center p-6 border-b border-border">
             <h2 className="text-lg font-semibold text-card-foreground">Upcoming Payments</h2>
             <Link href="/dashboard/recurring">
@@ -263,7 +314,7 @@ export default function DashboardOverview({
                         </p>
                       </div>
                     </div>
-                    <span className="text-sm font-medium text-destructive">
+                    <span className="font-amount text-sm font-medium text-expense">
                       {formatAmount(Math.abs(Number(rec.amount)))}
                     </span>
                   </div>

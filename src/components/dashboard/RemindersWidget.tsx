@@ -110,7 +110,7 @@ export default function RemindersWidget() {
                 </div>
               </div>
               {reminder.isExpenseRelated && reminder.estimatedCost && (
-                <p className="text-sm font-medium text-muted-foreground shrink-0">
+                <p className="font-amount text-sm font-medium text-muted-foreground shrink-0">
                   ~${Number(reminder.estimatedCost).toFixed(2)}
                 </p>
               )}

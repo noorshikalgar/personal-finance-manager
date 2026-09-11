@@ -84,7 +84,7 @@ export default function SignInPage() {
                 return (
                   <div key={idx} className="flex gap-5">
                     <div className="flex-shrink-0">
-                      <div className="flex items-center justify-center h-14 w-14 rounded-xl bg-primary/15 border border-primary/20">
+                      <div className="flex items-center justify-center h-14 w-14 rounded-surface bg-primary/15 border border-primary/20 shadow-elevation-1">
                         <Icon className="h-7 w-7 text-primary" />
                       </div>
                     </div>
@@ -102,7 +102,7 @@ export default function SignInPage() {
             </div>
 
             {/* Social proof */}
-            <div className="bg-card/40 backdrop-blur border border-border rounded-xl p-6 mt-12">
+            <div className="bg-card/40 backdrop-blur border border-border rounded-surface shadow-elevation-1 p-6 mt-12">
               <p className="text-sm text-muted-foreground font-medium mb-3">✨ Trusted by thousands</p>
               <div className="flex gap-2">
                 {[1, 2, 3, 4].map(i => (

@@ -88,13 +88,13 @@ export default function DashboardNav({ userEmail }: DashboardNavProps) {
   }
 
   return (
-    <nav className="bg-background border-b border-border sticky top-0 z-50">
+    <nav className="bg-background/85 backdrop-blur-md supports-[backdrop-filter]:bg-background/70 border-b border-border sticky top-0 z-50">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
         <div className="flex justify-between items-center h-16">
           {/* Logo */}
           <Link href="/dashboard" className="flex items-center shrink-0">
-            <div className="h-8 w-8 bg-gradient-to-br from-primary to-primary/70 rounded-lg flex items-center justify-center mr-2">
-              <span className="text-primary-foreground font-bold text-lg">$</span>
+            <div className="h-8 w-8 bg-gradient-to-br from-primary to-accent rounded-[10px] shadow-elevation-1 flex items-center justify-center mr-2.5">
+              <span className="text-primary-foreground font-bold text-lg font-display">$</span>
             </div>
             <h1 className="text-lg font-bold text-foreground">Finance Tracker</h1>
           </Link>
@@ -108,7 +108,7 @@ export default function DashboardNav({ userEmail }: DashboardNavProps) {
                 <Link
                   key={item.href}
                   href={item.href}
-                  className={`inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
+                  className={`relative inline-flex items-center px-3 py-2 text-sm font-medium rounded-md transition-colors ${
                     isActive
                       ? 'text-primary bg-primary/10'
                       : 'text-muted-foreground hover:text-foreground hover:bg-muted'
@@ -116,6 +116,9 @@ export default function DashboardNav({ userEmail }: DashboardNavProps) {
                 >
                   <Icon className="h-4 w-4" />
                   <span className="ml-2">{item.label}</span>
+                  {isActive && (
+                    <span className="absolute inset-x-3 -bottom-[1px] h-0.5 rounded-full bg-primary" />
+                  )}
                 </Link>
               )
             })}

@@ -98,7 +98,7 @@ export default function SignUpPage() {
                 return (
                   <div key={idx} className="flex gap-5">
                     <div className="flex-shrink-0">
-                      <div className="flex items-center justify-center h-14 w-14 rounded-xl bg-primary/15 border border-primary/20">
+                      <div className="flex items-center justify-center h-14 w-14 rounded-surface bg-primary/15 border border-primary/20 shadow-elevation-1">
                         <Icon className="h-7 w-7 text-primary" />
                       </div>
                     </div>
@@ -116,7 +116,7 @@ export default function SignUpPage() {
             </div>
 
             {/* CTA */}
-            <div className="bg-primary/10 border border-primary/20 rounded-xl p-6 mt-12">
+            <div className="bg-primary/10 border border-primary/20 rounded-surface shadow-elevation-1 p-6 mt-12">
               <p className="text-sm text-foreground font-semibold mb-2">🎯 Get started in 30 seconds</p>
               <p className="text-sm text-muted-foreground">No credit card required. Free forever.</p>
             </div>
