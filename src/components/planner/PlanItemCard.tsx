@@ -48,7 +48,7 @@ export default function PlanItemCard({ item, onMarkPaid, onDelete }: PlanItemCar
   return (
     <Card className={item.isPaid ? 'opacity-60' : ''}>
       <CardContent className="p-4">
-        <div className="flex items-start justify-between gap-4">
+        <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-3 sm:gap-4">
           {/* Left: Item Info */}
           <div className="flex-1 min-w-0">
             <div className="flex items-start gap-3">
@@ -87,7 +87,7 @@ export default function PlanItemCard({ item, onMarkPaid, onDelete }: PlanItemCar
                     </Badge>
                   )}
                 </div>
-                <div className="flex items-center gap-3 text-sm text-muted-foreground">
+                <div className="flex flex-wrap items-center gap-x-3 gap-y-1 text-sm text-muted-foreground">
                   <span className="flex items-center gap-1">
                     <Calendar className="h-3.5 w-3.5" />
                     {format(new Date(item.dueDate), 'MMM dd, yyyy')}
@@ -116,7 +116,7 @@ export default function PlanItemCard({ item, onMarkPaid, onDelete }: PlanItemCar
           </div>
 
           {/* Right: Amount & Actions */}
-          <div className="flex items-center gap-3">
+          <div className="flex items-center justify-between sm:justify-end gap-3 pl-9 sm:pl-0">
             <div className="text-right">
               <p className="text-lg font-bold text-foreground">
                 ₹{item.amount.toLocaleString('en-IN')}

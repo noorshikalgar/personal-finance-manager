@@ -142,10 +142,10 @@ export function GoalsTracker() {
       <div className="space-y-4">
         {activeGoals.map(goal => (
           <div key={goal.id} className="bg-background/50 border border-border rounded-lg p-4 space-y-3">
-            <div className="flex items-start justify-between">
-              <div>
-                <h3 className="font-medium text-foreground">{goal.title}</h3>
-                <div className="flex items-center gap-2 mt-1">
+            <div className="flex flex-col sm:flex-row sm:items-start justify-between gap-2">
+              <div className="min-w-0">
+                <h3 className="font-medium text-foreground truncate">{goal.title}</h3>
+                <div className="flex flex-wrap items-center gap-2 mt-1">
                   <span className={`inline-block px-2 py-1 rounded text-xs font-medium ${getCategoryColor(goal.category)}`}>
                     {goal.category.replace(/_/g, ' ')}
                   </span>
@@ -163,7 +163,7 @@ export function GoalsTracker() {
                   )}
                 </div>
               </div>
-              <div className="text-right">
+              <div className="text-left sm:text-right shrink-0">
                 <div className="text-sm font-semibold text-foreground">
                   ${Number(goal.currentAmount).toLocaleString('en-US', { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                 </div>
