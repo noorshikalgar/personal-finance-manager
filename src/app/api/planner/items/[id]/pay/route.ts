@@ -61,7 +61,17 @@ export async function POST(
     const endOfDay = new Date(paidDate);
     endOfDay.setHours(23, 59, 59, 999);
 
-    const existingTransaction = await prisma.transaction.findFirst({
+    // Matched on amount + day + type alone, this previously collided whenever two
+    // different bills shared an amount and a day (e.g. two ₹499 subscriptions due
+    // the same day): whichever transaction matched first got linked to both plan
+    // items, and the unique constraint on PlanItem.transactionId only surfaced
+    // that as a confusing failure for the second one instead of a correct,
+    // separate link. Excluding transactions already linked to a plan item and
+    // requiring a category match (when the item has one) narrows most real
+    // collisions away. For the remaining case — still more than one unclaimed
+    // candidate — there's no signal left to break the tie, so treat it as no
+    // match rather than silently guessing.
+    const candidateTransactions = await prisma.transaction.findMany({
       where: {
         userId: session.user.id,
         amount: -Math.abs(item.amount), // Expenses are negative
@@ -70,8 +80,13 @@ export async function POST(
           lte: endOfDay,
         },
         type: 'EXPENSE',
+        planItem: { is: null },
+        ...(item.categoryId ? { categoryId: item.categoryId } : {}),
       },
+      take: 2,
     });
+    const existingTransaction =
+      candidateTransactions.length === 1 ? candidateTransactions[0] : undefined;
 
     let transactionId = existingTransaction?.id;
 
