@@ -1,19 +1,36 @@
-# Docker Cron Setup for Recurring Transactions
+# Docker Cron Setup for Recurring Transactions & Backups
 
-This setup runs a lightweight Alpine Linux container with cron to automatically trigger recurring transactions daily.
+This setup runs a lightweight Alpine Linux container with cron for two jobs:
+triggering recurring transactions daily, and backing up the database on a
+weekly/monthly schedule.
 
 ## Files Created
 
-- `cron/Dockerfile` - Docker image with cron installed
-- `cron/run-cron.sh` - Script that calls the API endpoint
-- Updated `docker-compose.yml` - Added cron service
+- `cron/Dockerfile` - Docker image with cron + `pg_dump` installed
+- `cron/run-cron.sh` - Script that calls the recurring-transactions API endpoint
+- `cron/backup.sh` - Script that dumps the database and prunes old dumps
+- Updated `docker-compose.yml` - Added cron service, backup env vars, and a
+  bind-mounted `/backups` volume
 
 ## How It Works
 
-1. **Cron container** runs daily at midnight (00:00)
-2. **Calls** `POST /api/cron/recurring` on your app
-3. **Processes** all recurring transactions due today
-4. **Logs** results to `/var/log/cron.log` inside container
+**Recurring transactions:**
+1. Runs daily at midnight (00:00)
+2. Calls `POST /api/cron/recurring` on your app
+3. Processes all recurring transactions due today
+4. Logs results to `/var/log/cron.log` inside container
+
+**Database backups:**
+1. Runs `pg_dump` directly against the `postgres` service (no app involved)
+2. Weekly: every Sunday 02:00, keeps the newest 8 dumps
+3. Monthly: 1st of the month 03:00, keeps the newest 12 dumps
+4. Dumps are gzip'd SQL files named `personal_finance_<weekly|monthly>_<timestamp>.sql.gz`
+5. Written to `/backups` inside the container, which is a **bind mount** to a
+   real path on the host (`./backups` by default) — this is the key part for
+   disaster recovery: point that host path at wherever you already back up to
+   (an external HDD, Time Machine, an rsync cron, a NAS sync), and the app
+   never needs to know that destination exists.
+6. Logs to `/var/log/backup.log` inside the container
 
 ## Setup Instructions
 
@@ -22,6 +39,21 @@ This setup runs a lightweight Alpine Linux container with cron to automatically 
 Add to your `.env` file:
 ```bash
 CRON_SECRET=your-super-secret-key-here-change-this
+```
+
+### 1b. Point backups at your actual backup destination
+
+By default backups land in `./backups` next to the compose file, which is
+fine for testing but is *not* itself a backup destination — it's still on
+the same disk as everything else. Set this in your `.env` to a path that's
+actually synced elsewhere (an external drive mount, a NAS mount, a folder
+watched by Time Machine or an rsync job):
+
+```bash
+BACKUP_HOST_DIR=/Volumes/MyExternalDrive/finance-backups
+# Optional, defaults shown:
+BACKUP_RETENTION_WEEKLY=8
+BACKUP_RETENTION_MONTHLY=12
 ```
 
 ### 2. Update Timezone (Optional)
@@ -85,10 +117,32 @@ Cron format: `minute hour day month weekday`
 
 ## Testing Manually
 
-Trigger the cron job manually:
+Trigger the recurring-transactions job manually:
 ```bash
 docker exec finance-tracker-cron /app/run-cron.sh
 ```
+
+Trigger a backup manually (either kind, any time):
+```bash
+docker exec finance-tracker-cron /app/backup.sh weekly
+docker exec finance-tracker-cron /app/backup.sh monthly
+```
+
+List backups on the host:
+```bash
+ls -lh ./backups
+# or wherever BACKUP_HOST_DIR points
+```
+
+## Restoring from a Backup
+
+```bash
+gunzip -c ./backups/personal_finance_weekly_20260911_020000.sql.gz | \
+  docker exec -i finance-tracker-db psql -U financeuser -d financedb
+```
+
+Restoring onto a fresh/empty database is safest. Restoring onto a database
+that already has data will conflict with existing rows.
 
 ## Monitoring
 
