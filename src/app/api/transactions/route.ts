@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server'
 import { auth } from '@/lib/auth'
 import { prisma } from '@/lib/prisma'
-import { checkCategoryBudget, checkGoalCompletion, updateReminderOnTransaction } from '@/lib/notifications'
+import { checkCategoryBudget, updateReminderOnTransaction } from '@/lib/notifications'
 import { updateGoalFromTransaction } from '@/lib/goals'
 
 // GET transactions with filtering and pagination
@@ -17,6 +17,7 @@ export async function GET(req: NextRequest) {
     const limit = parseInt(searchParams.get('limit') || '50')
     const accountId = searchParams.get('accountId')
     const categoryId = searchParams.get('categoryId')
+    const goalId = searchParams.get('goalId')
     const search = searchParams.get('search')
     const fromDate = searchParams.get('fromDate')
     const toDate = searchParams.get('toDate')
@@ -39,6 +40,8 @@ export async function GET(req: NextRequest) {
     }
     
     if (type) where.type = type
+
+    if (goalId) where.goalId = goalId
     
     if (search) {
       where.OR = [
@@ -143,6 +146,7 @@ export async function POST(req: NextRequest) {
 
     const body = await req.json()
     const { accountId, categoryId, reminderId, date, amount, type, note } = body
+    let goalId: string | null | undefined = body.goalId
 
     if (!accountId || !date || amount === undefined || !type) {
       return NextResponse.json(
@@ -166,6 +170,15 @@ export async function POST(req: NextRequest) {
       )
     }
 
+    // If no goal was explicitly picked, fall back to the category's default goal link
+    if (goalId === undefined && categoryId) {
+      const category = await prisma.category.findUnique({
+        where: { id: categoryId },
+        select: { goalId: true },
+      })
+      goalId = category?.goalId ?? null
+    }
+
     // Start a transaction to update both transaction and account balance
     const result = await prisma.$transaction(async (tx) => {
       // Create transaction
@@ -175,6 +188,7 @@ export async function POST(req: NextRequest) {
           accountId,
           categoryId: categoryId || null,
           reminderId: reminderId || null,
+          goalId: goalId || null,
           date: new Date(date),
           amount: parseFloat(amount),
           type,
@@ -220,30 +234,18 @@ export async function POST(req: NextRequest) {
       return transaction
     })
 
-    // Check budget and goal completion after transaction is created
-    if (categoryId) {
-      // Auto-update goal progress
-      await updateGoalFromTransaction(categoryId, type, parseFloat(amount)).catch((error) => {
+    // Update goal progress from the explicit link — single source of truth
+    if (goalId) {
+      await updateGoalFromTransaction(goalId, type, parseFloat(amount)).catch((error) => {
         console.error('Failed to update goal from transaction:', error);
       });
+    }
 
+    // Budget tracking stays keyed on category, independent of goal linking
+    if (categoryId) {
       await checkCategoryBudget(categoryId, userId).catch((error) => {
         console.error('Failed to check category budget:', error);
       });
-
-      // Check if any goals are linked to this category
-      const category = await prisma.category.findUnique({
-        where: { id: categoryId },
-        include: {
-          goal: true,
-        },
-      });
-
-      if (category?.goal) {
-        await checkGoalCompletion(category.goal.id, userId).catch((error) => {
-          console.error('Failed to check goal completion:', error);
-        });
-      }
     }
 
     // Update reminder if linked

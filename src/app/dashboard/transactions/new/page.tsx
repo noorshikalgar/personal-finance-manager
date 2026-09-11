@@ -5,7 +5,7 @@ import { useRouter, useSearchParams } from 'next/navigation'
 import { Button } from '@/components/ui/button'
 import { ArrowLeft } from 'lucide-react'
 import Link from 'next/link'
-import { Account, Category, Reminder } from '@prisma/client'
+import { Account, Category, Goal, Reminder } from '@prisma/client'
 import CategorySelector from '@/components/categories/CategorySelector'
 import { DatePicker } from '@/components/ui/DatePicker'
 
@@ -21,10 +21,14 @@ export default function NewTransactionPage() {
   
   const [accounts, setAccounts] = useState<Account[]>([])
   const [reminders, setReminders] = useState<ReminderWithCategory[]>([])
-  
+  const [categories, setCategories] = useState<Category[]>([])
+  const [goals, setGoals] = useState<Goal[]>([])
+
   const [accountId, setAccountId] = useState('')
   const [categoryId, setCategoryId] = useState('')
   const [reminderId, setReminderId] = useState('')
+  const [goalId, setGoalId] = useState('')
+  const [goalTouched, setGoalTouched] = useState(false)
   const [date, setDate] = useState<Date | null>(null)
   const [amount, setAmount] = useState('')
   const [type, setType] = useState<'INCOME' | 'EXPENSE'>('EXPENSE')
@@ -45,6 +49,7 @@ export default function NewTransactionPage() {
     fetchAccounts()
     fetchCategories()
     fetchReminders()
+    fetchGoals()
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [])
 
@@ -56,6 +61,14 @@ export default function NewTransactionPage() {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [categoryId])
 
+  // Default the goal link from the category's own default goal, unless the
+  // user has already picked a goal manually for this transaction.
+  useEffect(() => {
+    if (goalTouched) return
+    const category = categories.find((c) => c.id === categoryId)
+    setGoalId(category?.goalId || '')
+  }, [categoryId, categories, goalTouched])
+
   const fetchAccounts = async () => {
     const res = await fetch('/api/accounts')
     if (res.ok) {
@@ -66,7 +79,26 @@ export default function NewTransactionPage() {
   }
 
   const fetchCategories = async () => {
-    // Intentionally empty - categories are fetched by CategorySelector
+    try {
+      const res = await fetch('/api/categories')
+      if (res.ok) {
+        setCategories(await res.json())
+      }
+    } catch (err) {
+      console.error('Failed to fetch categories:', err)
+    }
+  }
+
+  const fetchGoals = async () => {
+    try {
+      const res = await fetch('/api/goals')
+      if (res.ok) {
+        const data = await res.json()
+        setGoals(data.goals || [])
+      }
+    } catch (err) {
+      console.error('Failed to fetch goals:', err)
+    }
   }
 
   const fetchReminders = async () => {
@@ -119,6 +151,7 @@ export default function NewTransactionPage() {
           accountId,
           categoryId: categoryId || null,
           reminderId: reminderId || null,
+          goalId: goalId || null,
           date: date?.toISOString() || new Date().toISOString(),
           amount: finalAmount,
           type,
@@ -271,6 +304,33 @@ export default function NewTransactionPage() {
               onChange={setCategoryId}
               placeholder="No category"
             />
+          </div>
+
+          <div>
+            <label htmlFor="goalId" className="block text-sm font-medium text-foreground">
+              Link to Goal (optional)
+            </label>
+            <select
+              id="goalId"
+              value={goalId}
+              onChange={(e) => {
+                setGoalTouched(true)
+                setGoalId(e.target.value)
+              }}
+              className="mt-1 block w-full px-3 py-2 border border-border rounded-md shadow-sm bg-card text-foreground focus:outline-none focus:ring-primary focus:border-blue-500"
+            >
+              <option value="" className="bg-card text-foreground">No goal</option>
+              {goals.map((goal) => (
+                <option key={goal.id} value={goal.id} className="bg-card text-foreground">
+                  {goal.title} ({goal.progressMode === 'INCOME_ADDS' ? 'counts income' : 'counts expense'})
+                </option>
+              ))}
+            </select>
+            <p className="mt-1 text-sm text-muted-foreground">
+              {type === 'INCOME'
+                ? 'Only counts toward goals set to track income (e.g. savings).'
+                : 'Only counts toward goals set to track expenses (e.g. debt payoff).'}
+            </p>
           </div>
 
           <div>
