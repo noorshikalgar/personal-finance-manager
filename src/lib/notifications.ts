@@ -215,64 +215,10 @@ export async function checkCategoryBudget(categoryId: string, userId: string) {
   }
 }
 
-/**
- * Check if a goal has been completed
- */
-export async function checkGoalCompletion(goalId: string, userId: string) {
-  try {
-    const goal = await prisma.goal.findUnique({
-      where: { id: goalId },
-      include: {
-        categories: {
-          include: {
-            transactions: true,
-          },
-        },
-      },
-    });
-
-    if (!goal) {
-      return null;
-    }
-
-    // Calculate total saved (convert Decimal to number)
-    const totalSaved = goal.categories.reduce(
-      (sum, category) =>
-        sum +
-        category.transactions.reduce(
-          (catSum, transaction) => catSum + Number(transaction.amount),
-          0
-        ),
-      0
-    );
-
-    const targetAmount = Number(goal.targetAmount);
-
-    // Check if goal completed
-    if (totalSaved >= targetAmount && goal.status !== 'COMPLETED') {
-      // Update goal status
-      await prisma.goal.update({
-        where: { id: goalId },
-        data: { status: 'COMPLETED' },
-      });
-
-      // Create notification
-      await createNotification({
-        userId,
-        type: 'GOAL_COMPLETED',
-        title: 'Goal Completed! 🎉',
-        message: `Congratulations! You've reached your goal "${goal.title}"!`,
-        relatedId: goalId,
-        relatedType: 'goal',
-      });
-    }
-
-    return { totalSaved, targetAmount, completed: totalSaved >= targetAmount };
-  } catch (error) {
-    console.error('Failed to check goal completion:', error);
-    throw error;
-  }
-}
+// Goal completion is now detected and notified inside updateGoalFromTransaction
+// (src/lib/goals.ts), which is the single place that mutates Goal.currentAmount.
+// A second, independently-computed check here previously disagreed with it —
+// see AUDIT_REPORT for details — so it was removed rather than kept in sync by hand.
 
 /**
  * Update reminder when a transaction is linked to it

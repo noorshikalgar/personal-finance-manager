@@ -1,31 +1,21 @@
 import { prisma } from './prisma';
+import { createNotification } from './notifications';
 
 /**
- * Auto-update goal progress when a transaction is linked to a category that has a goal
- * @param categoryId - The category ID of the transaction
- * @param transactionType - The type of transaction (INCOME or EXPENSE)
- * @param amount - The transaction amount (positive for income, negative for expense)
+ * Auto-update goal progress when a transaction is explicitly linked to a goal
+ * via Transaction.goalId. This is the single source of truth for goal progress —
+ * do not recompute it elsewhere from category transactions.
  */
 export async function updateGoalFromTransaction(
-  categoryId: string,
+  goalId: string | null | undefined,
   transactionType: 'INCOME' | 'EXPENSE',
   amount: number
 ) {
   try {
-    // Find category and its linked goal
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
-      include: {
-        goal: true,
-      },
-    });
+    if (!goalId) return;
 
-    // No goal linked to this category
-    if (!category?.goal || !category.goalId) {
-      return;
-    }
-
-    const goal = category.goal;
+    const goal = await prisma.goal.findUnique({ where: { id: goalId } });
+    if (!goal) return;
 
     // Skip if goal is not ACTIVE
     if (goal.status !== 'ACTIVE') {
@@ -33,31 +23,24 @@ export async function updateGoalFromTransaction(
     }
 
     // Determine if this transaction should update the goal based on progressMode
-    let shouldUpdate = false;
-    let amountToAdd = 0;
+    const shouldUpdate =
+      (goal.progressMode === 'INCOME_ADDS' && transactionType === 'INCOME') ||
+      (goal.progressMode === 'EXPENSE_ADDS' && transactionType === 'EXPENSE');
 
-    if (goal.progressMode === 'INCOME_ADDS' && transactionType === 'INCOME') {
-      // Income transaction adds to goal (for savings goals)
-      shouldUpdate = true;
-      amountToAdd = Math.abs(amount); // Ensure positive
-    } else if (goal.progressMode === 'EXPENSE_ADDS' && transactionType === 'EXPENSE') {
-      // Expense transaction adds to goal (for debt payoff goals)
-      shouldUpdate = true;
-      amountToAdd = Math.abs(amount); // Ensure positive
-    }
+    const amountToAdd = Math.abs(amount);
 
     if (!shouldUpdate || amountToAdd === 0) {
       return;
     }
 
-    // Update goal progress
     const newCurrentAmount = Number(goal.currentAmount) + amountToAdd;
+    const justCompleted = newCurrentAmount >= Number(goal.targetAmount);
+
     const updateData: Record<string, unknown> = {
       currentAmount: newCurrentAmount,
     };
 
-    // Auto-complete goal if target reached
-    if (newCurrentAmount >= Number(goal.targetAmount)) {
+    if (justCompleted) {
       updateData.status = 'COMPLETED';
       updateData.completedAt = new Date();
     }
@@ -67,7 +50,18 @@ export async function updateGoalFromTransaction(
       data: updateData,
     });
 
-    console.log(`Goal "${goal.title}" updated: +${amountToAdd} → ${newCurrentAmount}/${goal.targetAmount}`);
+    if (justCompleted) {
+      await createNotification({
+        userId: goal.userId,
+        type: 'GOAL_COMPLETED',
+        title: 'Goal Completed! 🎉',
+        message: `Congratulations! You've reached your goal "${goal.title}"!`,
+        relatedId: goal.id,
+        relatedType: 'goal',
+      }).catch((error) => {
+        console.error('Failed to send goal completion notification:', error);
+      });
+    }
   } catch (error) {
     console.error('Error updating goal from transaction:', error);
     // Don't throw - goal update should not block transaction creation
@@ -75,51 +69,29 @@ export async function updateGoalFromTransaction(
 }
 
 /**
- * Reverse goal progress when a transaction is deleted
- * @param categoryId - The category ID of the transaction
- * @param transactionType - The type of transaction (INCOME or EXPENSE)
- * @param amount - The transaction amount (positive for income, negative for expense)
+ * Reverse goal progress when a transaction is deleted or unlinked from a goal.
  */
 export async function reverseGoalFromTransaction(
-  categoryId: string | null,
+  goalId: string | null | undefined,
   transactionType: 'INCOME' | 'EXPENSE',
   amount: number
 ) {
   try {
-    if (!categoryId) return;
+    if (!goalId) return;
 
-    // Find category and its linked goal
-    const category = await prisma.category.findUnique({
-      where: { id: categoryId },
-      include: {
-        goal: true,
-      },
-    });
+    const goal = await prisma.goal.findUnique({ where: { id: goalId } });
+    if (!goal) return;
 
-    // No goal linked to this category
-    if (!category?.goal || !category.goalId) {
-      return;
-    }
+    const shouldReverse =
+      (goal.progressMode === 'INCOME_ADDS' && transactionType === 'INCOME') ||
+      (goal.progressMode === 'EXPENSE_ADDS' && transactionType === 'EXPENSE');
 
-    const goal = category.goal;
-
-    // Determine if this transaction affected the goal
-    let shouldReverse = false;
-    let amountToSubtract = 0;
-
-    if (goal.progressMode === 'INCOME_ADDS' && transactionType === 'INCOME') {
-      shouldReverse = true;
-      amountToSubtract = Math.abs(amount);
-    } else if (goal.progressMode === 'EXPENSE_ADDS' && transactionType === 'EXPENSE') {
-      shouldReverse = true;
-      amountToSubtract = Math.abs(amount);
-    }
+    const amountToSubtract = Math.abs(amount);
 
     if (!shouldReverse || amountToSubtract === 0) {
       return;
     }
 
-    // Reverse goal progress
     const newCurrentAmount = Math.max(0, Number(goal.currentAmount) - amountToSubtract);
     const updateData: Record<string, unknown> = {
       currentAmount: newCurrentAmount,
@@ -135,8 +107,6 @@ export async function reverseGoalFromTransaction(
       where: { id: goal.id },
       data: updateData,
     });
-
-    console.log(`Goal "${goal.title}" reversed: -${amountToSubtract} → ${newCurrentAmount}/${goal.targetAmount}`);
   } catch (error) {
     console.error('Error reversing goal from transaction:', error);
     // Don't throw - goal reversal should not block transaction deletion

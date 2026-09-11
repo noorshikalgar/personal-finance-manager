@@ -141,9 +141,13 @@ model Transaction {
   // Link to reminder (optional)
   reminderId    String?
   reminder      Reminder? @relation(fields: [reminderId], references: [id], onDelete: SetNull)
-  
+
   // Link to planner item (optional)
   planItem      PlanItem?
+
+  // Direct link to a savings/debt goal this transaction contributes to (optional)
+  goalId        String?
+  goal          Goal?     @relation(fields: [goalId], references: [id], onDelete: SetNull)
   
   createdAt   DateTime        @default(now())
   updatedAt   DateTime        @updatedAt
@@ -151,6 +155,7 @@ model Transaction {
   @@index([userId])
   @@index([accountId])
   @@index([categoryId])
+  @@index([goalId])
   @@index([date])
 }
 
@@ -241,8 +246,9 @@ model Goal {
   updatedAt     DateTime      @updatedAt
   completedAt   DateTime?     // When goal was completed
   
-  categories    Category[]    // Categories linked to this goal
-  
+  categories    Category[]    // Categories that default-link new transactions to this goal
+  transactions  Transaction[] // Transactions explicitly contributing to this goal (source of truth for progress)
+
   @@index([userId])
   @@index([status])
   @@index([category])

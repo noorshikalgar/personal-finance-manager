@@ -32,6 +32,16 @@ interface Goal {
   deadline?: string;
 }
 
+interface LinkedTransaction {
+  id: string;
+  date: string;
+  amount: number;
+  type: string;
+  note: string | null;
+  account: { name: string };
+  category: { name: string; color: string | null } | null;
+}
+
 export default function EditGoalPage() {
   const router = useRouter();
   const params = useParams();
@@ -42,12 +52,28 @@ export default function EditGoalPage() {
   const [error, setError] = useState<string | null>(null);
 
   const [formData, setFormData] = useState<Goal | null>(null);
+  const [linkedTransactions, setLinkedTransactions] = useState<LinkedTransaction[]>([]);
+  const [linkedLoading, setLinkedLoading] = useState(true);
 
   useEffect(() => {
     if (!goalId) return;
     fetchGoal();
+    fetchLinkedTransactions();
   // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [goalId]);
+
+  const fetchLinkedTransactions = async () => {
+    try {
+      const res = await fetch(`/api/transactions?goalId=${goalId}&limit=10`);
+      if (!res.ok) return;
+      const data = await res.json();
+      setLinkedTransactions(data.transactions || []);
+    } catch (err) {
+      console.error('Failed to fetch linked transactions:', err);
+    } finally {
+      setLinkedLoading(false);
+    }
+  };
 
   const fetchGoal = async () => {
     try {
@@ -316,6 +342,40 @@ export default function EditGoalPage() {
               <span className="font-medium">Expense Adds:</span> For debt payoff, bill payments. Expense transactions increase progress.
             </p>
           </div>
+        </div>
+
+        {/* Linked Transactions Card */}
+        <div className="bg-card border border-border rounded-lg p-5 space-y-3">
+          <div>
+            <h2 className="text-sm font-semibold text-muted-foreground uppercase tracking-wide">Linked Transactions</h2>
+            <p className="text-xs text-muted-foreground mt-1">
+              Transactions explicitly tagged toward this goal — this is what drives Current Amount above.
+            </p>
+          </div>
+
+          {linkedLoading ? (
+            <div className="h-16 bg-muted rounded animate-pulse" />
+          ) : linkedTransactions.length === 0 ? (
+            <p className="text-sm text-muted-foreground">
+              No transactions linked yet. Pick this goal from the &quot;Link to Goal&quot; field when adding a transaction.
+            </p>
+          ) : (
+            <ul className="divide-y divide-border">
+              {linkedTransactions.map((t) => (
+                <li key={t.id} className="flex items-center justify-between py-2 text-sm">
+                  <div>
+                    <span className="text-foreground">{t.note || t.category?.name || t.account.name}</span>
+                    <span className="text-muted-foreground ml-2">
+                      {new Date(t.date).toLocaleDateString()}
+                    </span>
+                  </div>
+                  <span className={t.type === 'INCOME' ? 'text-green-600 font-medium' : 'text-red-600 font-medium'}>
+                    {t.type === 'INCOME' ? '+' : ''}{currency} {Math.abs(t.amount).toFixed(2)}
+                  </span>
+                </li>
+              ))}
+            </ul>
+          )}
         </div>
 
         {/* Action Buttons */}

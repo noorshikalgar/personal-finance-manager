@@ -48,6 +48,7 @@ export async function PATCH(
         data: {
           categoryId: body.categoryId !== undefined ? body.categoryId : undefined,
           reminderId: body.reminderId !== undefined ? body.reminderId : undefined,
+          goalId: body.goalId !== undefined ? body.goalId : undefined,
           date: body.date ? new Date(body.date) : undefined,
           amount: body.amount ? parseFloat(body.amount) : undefined,
           type: body.type,
@@ -89,9 +90,9 @@ export async function PATCH(
       return transaction
     })
 
-    // Handle goal updates if category changed or amount changed
-    const oldCategoryId = existingTransaction.categoryId;
-    const newCategoryId = body.categoryId !== undefined ? body.categoryId : oldCategoryId;
+    // Handle goal updates if the linked goal or amount changed
+    const oldGoalId = existingTransaction.goalId;
+    const newGoalId = body.goalId !== undefined ? body.goalId : oldGoalId;
     const oldType = existingTransaction.type;
     const newType = body.type || oldType;
 
@@ -99,26 +100,24 @@ export async function PATCH(
     const shouldUpdateGoal = (oldType === 'INCOME' || oldType === 'EXPENSE') || (newType === 'INCOME' || newType === 'EXPENSE');
 
     if (shouldUpdateGoal) {
-      // If category changed, reverse old goal and update new goal
-      if (oldCategoryId !== newCategoryId) {
-        // Reverse old goal if it existed
-        if (oldCategoryId && (oldType === 'INCOME' || oldType === 'EXPENSE')) {
-          await reverseGoalFromTransaction(oldCategoryId, oldType as 'INCOME' | 'EXPENSE', oldAmount).catch((error) => {
-            console.error('Failed to reverse goal from old category:', error);
+      // If the linked goal changed, reverse old goal and update new goal
+      if (oldGoalId !== newGoalId) {
+        if (oldGoalId && (oldType === 'INCOME' || oldType === 'EXPENSE')) {
+          await reverseGoalFromTransaction(oldGoalId, oldType as 'INCOME' | 'EXPENSE', oldAmount).catch((error) => {
+            console.error('Failed to reverse old goal:', error);
           });
         }
-        // Update new goal if it exists
-        if (newCategoryId && (newType === 'INCOME' || newType === 'EXPENSE')) {
-          await updateGoalFromTransaction(newCategoryId, newType as 'INCOME' | 'EXPENSE', newAmount).catch((error) => {
-            console.error('Failed to update goal from new category:', error);
+        if (newGoalId && (newType === 'INCOME' || newType === 'EXPENSE')) {
+          await updateGoalFromTransaction(newGoalId, newType as 'INCOME' | 'EXPENSE', newAmount).catch((error) => {
+            console.error('Failed to update new goal:', error);
           });
         }
-      } else if (amountDelta !== 0 && newCategoryId && (oldType === 'INCOME' || oldType === 'EXPENSE')) {
-        // Same category but amount changed - reverse old amount and add new amount
-        await reverseGoalFromTransaction(newCategoryId, oldType as 'INCOME' | 'EXPENSE', oldAmount).catch((error) => {
+      } else if (amountDelta !== 0 && newGoalId && (oldType === 'INCOME' || oldType === 'EXPENSE')) {
+        // Same goal but amount changed - reverse old amount and add new amount
+        await reverseGoalFromTransaction(newGoalId, oldType as 'INCOME' | 'EXPENSE', oldAmount).catch((error) => {
           console.error('Failed to reverse goal:', error);
         });
-        await updateGoalFromTransaction(newCategoryId, newType as 'INCOME' | 'EXPENSE', newAmount).catch((error) => {
+        await updateGoalFromTransaction(newGoalId, newType as 'INCOME' | 'EXPENSE', newAmount).catch((error) => {
           console.error('Failed to update goal:', error);
         });
       }
@@ -205,10 +204,10 @@ export async function DELETE(
       }
     })
 
-    // Reverse goal progress if transaction was linked to a category with a goal
-    if (transaction.categoryId) {
+    // Reverse goal progress if transaction was linked to a goal
+    if (transaction.goalId) {
       await reverseGoalFromTransaction(
-        transaction.categoryId,
+        transaction.goalId,
         transaction.type as 'INCOME' | 'EXPENSE',
         Number(transaction.amount)
       ).catch((error) => {
