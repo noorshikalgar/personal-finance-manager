@@ -55,8 +55,20 @@ services:
       APP_URL: http://app:3000
       CRON_SECRET: ${CRON_SECRET}
       TZ: Asia/Kolkata
+      DB_HOST: postgres
+      DB_PORT: 5432
+      DB_USER: financeuser
+      DB_PASSWORD: financepass
+      DB_NAME: financedb
+      BACKUP_DIR: /backups
+      RETENTION_WEEKLY: ${BACKUP_RETENTION_WEEKLY:-8}
+      RETENTION_MONTHLY: ${BACKUP_RETENTION_MONTHLY:-12}
     volumes:
       - cron_logs:/var/log
+      # Bind mount (not a named volume) so backups land on a real host path -
+      # point BACKUP_HOST_DIR at wherever you already back up to (an external
+      # HDD, a Time Machine target, an rsync destination, etc).
+      - ${BACKUP_HOST_DIR:-./backups}:/backups
 
 volumes:
   postgres_data:

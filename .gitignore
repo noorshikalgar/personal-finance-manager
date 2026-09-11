@@ -42,3 +42,6 @@ next-env.d.ts
 
 /src/generated/prisma
 uploads/
+
+# local database backups (see cron/backup.sh)
+/backups
